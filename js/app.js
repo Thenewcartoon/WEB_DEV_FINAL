@@ -25,7 +25,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
     .then(response => response.text())  //takes response from fetch request and extracts its text content
     .then(html => { //takes the html text and runs code in this callback function
         // Add the HTML to the page
-        document.querySelector('#divContent').innerHTML += html; //finds the element with ID "divContent" and adds the HTML from the login component to its existing content.
+        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html); //finds the element with ID "divContent" and adds the HTML from the login component to its existing content.
         
         // Hide index, show login
         document.querySelector('#divSelect').style.display = 'none';
@@ -95,11 +95,21 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
             }
         });
 
-        // Back to selection screen button
-        document.querySelector('#btnSwapLogin').addEventListener('click', function(){
-            document.querySelector('#frmLogin').style.display = 'none';
+        // Back to landing screen button
+        document.querySelector('#btnSwapLogin').addEventListener('click', function () {
+            let divContent = document.querySelector('#divContent');
+        
+            // Remove login and registration forms from the page
+            let loginForm = document.querySelector('#frmLogin');
+            let registerForm = document.querySelector('#frmRegister');
+        
+            if (loginForm) loginForm.remove(); // Removes login form completely
+            if (registerForm) registerForm.remove(); // Removes registration form completely
+        
+            // Show the main selection screen again
             document.querySelector('#divSelect').style.display = 'block';
         });
+        
     })
     .catch(error => console.error("Error fetching Login form:", error));
 })
@@ -111,7 +121,7 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
     .then(response => response.text())  //takes response from fetch request and extracts its text content
     .then(html => { //takes the html text and runs code in this callback function
         // Add the HTML to the page
-        document.querySelector('#divContent').innerHTML += html; //finds the element with ID "divContent" and adds the HTML from the registration component to its existing content.
+        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html); //finds the element with ID "divContent" and adds the HTML from the register component to its existing content.
         
         // Hide selection, show registration
         document.querySelector('#divSelect').style.display = 'none';
@@ -230,11 +240,21 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
             }
         });
 
-        // Back to selection screen button
-        document.querySelector('#btnSwapLogin').addEventListener('click', function(){
-            document.querySelector('#frmRegister').style.display = 'none';
+        // Back to landing screen button
+        document.querySelector('#btnSwapLogin').addEventListener('click', function () {
+            let divContent = document.querySelector('#divContent');
+        
+            // Remove login and registration forms from the page
+            let loginForm = document.querySelector('#frmLogin');
+            let registerForm = document.querySelector('#frmRegister');
+        
+            if (loginForm) loginForm.remove(); // Removes login form completely
+            if (registerForm) registerForm.remove(); // Removes registration form completely
+        
+            // Show the main selection screen again
             document.querySelector('#divSelect').style.display = 'block';
         });
+        
     })
     .catch(error => console.error("Error fetching registration form:", error));
 });
