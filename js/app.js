@@ -3,19 +3,19 @@ const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)
 const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
 //end global variables
 
-// Register button event listener - matches professor's pattern
+// Register button event listener. all validation and click events for registration page must be handled inside this event
 document.querySelector('#btnRegisterButton').addEventListener('click', (event) => {
-    fetch("components/registration.html")
-    .then(response => response.text())
-    .then(html => {
+    fetch("components/registration.html") //makes http request to get the content of the registration.html file from the components directory
+    .then(response => response.text())  //takes response from fetch request and extracts its text content
+    .then(html => { //takes the html text and runs code in this callback function
         // Add the HTML to the page
-        document.querySelector('#divContent').innerHTML += html;
+        document.querySelector('#divContent').innerHTML += html; //finds the element with ID "divContent" and adds the HTML from the registration component to its existing content.
         
         // Hide selection, show registration
         document.querySelector('#divSelect').style.display = 'none';
         document.querySelector('#frmRegister').style.display = 'block';
         
-        // ALL event handlers for the registration form
+        // **********ALL event handlers for the registration form below***************
         
         //change event for if user selects student or instructor
         document.querySelector('#roleSelect').addEventListener('change', function() {
