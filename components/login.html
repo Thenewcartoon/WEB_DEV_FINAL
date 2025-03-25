@@ -1,0 +1,25 @@
+<div class="card col-12 col-md-6 col-lg-4" id="frmLogin" style="display:none;">
+    <div class="card-body">
+        <h1 id="txtLoginTitle" class="text-center mt-4">Login</h1>
+        <h2 id="loginTitleResponsive" class="text-center mt-2"> </h2>
+
+        <div class="mt-2">
+            <label for="roleSelect">Select Role:</label>
+            <select class="form-control" id="roleSelect">
+                <option value="" selected disabled>Select Role</option>
+                <option value="student">Student</option>
+                <option value="instructor">Instructor</option>
+            </select>
+        </div>
+
+
+        <label for="txtUsername" class="mt-4">Input Username:</label>
+        <input id="txtUsername" class="form-control mt-2" type="email" placeholder="Email" aria-label="email">
+        <label for="txtPassword" class="mt-4">Input Password:</label>
+        <input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="password">
+    
+        <button class="btn btn-primary col-12 mt-3" type="button" id="btnLogin">Login</button>
+        <button class="btn btn-link col-12 mt-2" type="button" id="btnPassReset">Reset Password</button>
+        <button class="btn btn-link col-12 mt-4" type="button" id="btnSwapLogin">Back to home page</button>
+    </div>
+</div>
