@@ -5,7 +5,7 @@
 
         <div class="mt-2">
             <label for="roleSelect">Select Role:</label>
-            <select class="form-control" id="roleSelect">
+            <select class="form-control" id="roleSelect" aria-label="Select role (either student or instructor)">
                 <option value="" selected disabled>Select Role</option>
                 <option value="student">Student</option>
                 <option value="instructor">Instructor</option>
@@ -14,9 +14,9 @@
 
 
         <label for="txtUsername" class="mt-4">Input Username:</label>
-        <input id="txtUsername" class="form-control mt-2" type="email" placeholder="Email" aria-label="email">
+        <input id="txtUsername" class="form-control mt-2" type="email" placeholder="Email" aria-label="textbox for email">
         <label for="txtPassword" class="mt-4">Input Password:</label>
-        <input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="password">
+        <input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="textbox for password">
     
         <button class="btn btn-primary col-12 mt-3" type="button" id="btnLogin">Login</button>
         <!-- <button class="btn btn-link col-12 mt-2" type="button" id="btnPassReset">Reset Password</button> -->
