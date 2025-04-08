@@ -87,10 +87,55 @@
 
     
             <!-- Teams Section -->
-            <div class="tab-pane fade" id="teams" role="tabpanel">
-                <h4>Create or Manage Teams</h4>
-                <!-- Placeholder for team creation tools -->
-            </div>
+            <!-- Teams Section -->
+<div class="tab-pane fade" id="teams" role="tabpanel">
+    <h4>Create or Manage Teams</h4>
+
+    <!-- Select Course -->
+    <div class="mb-3">
+        <label for="teamCourseSelect" class="form-label">Select Course</label>
+        <select class="form-select" id="teamCourseSelect">
+            <option selected disabled>Select a course</option>
+            <option value="CS101">CS101 - Intro to Programming</option>
+            <option value="WD101">WD101 - Web Development</option>
+            <!-- More courses can be dynamically populated -->
+        </select>
+    </div>
+
+    <!-- Students Placeholder (could be checkboxes later) -->
+    <div class="mb-3">
+        <label class="form-label">Select Students for Team</label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="Alice" id="student1">
+            <label class="form-check-label" for="student1">Alice</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="Bob" id="student2">
+            <label class="form-check-label" for="student2">Bob</label>
+        </div>
+        <!-- You can generate these from JS later -->
+    </div>
+
+    <!-- Team Name Input -->
+    <div class="mb-3">
+        <label for="teamName" class="form-label">Team Name</label>
+        <input type="text" class="form-control" id="teamName" placeholder="e.g., Team Alpha">
+    </div>
+
+    <!-- Create Team Button -->
+    <button class="btn btn-primary mb-4" id="createTeamBtn">Create Team</button>
+
+    <!-- Teams List -->
+    <h5>Existing Teams</h5>
+    <ul class="list-group" id="teamList">
+        <!-- Dynamically added teams will go here -->
+        <li class="list-group-item">
+            <strong>Team Alpha</strong><br>
+            Members: Alice, Bob
+        </li>
+    </ul>
+</div>
+
     
             <!-- Reviews Section -->
             <div class="tab-pane fade" id="reviews" role="tabpanel">
