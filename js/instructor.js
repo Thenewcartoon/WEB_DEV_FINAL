@@ -1,6 +1,7 @@
 // instructor.js
 
 let courses = [];
+let teams = []
 
 // Utility function: Generate a 6-character alphanumeric join code
 function generateJoinCode(length = 6) {
@@ -20,8 +21,74 @@ document.addEventListener("DOMContentLoaded", () => {
     const createCourseForm = document.getElementById('createCourseForm');
     const courseTableBody = document.getElementById('courseTableBody');
 
+    const createTeamBtn = document.getElementById('createTeamBtn');
+    const teamList = document.getElementById('teamList');
+
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
+    //logic for after pushing the create team button
+    if (createTeamBtn) {
+        createTeamBtn.addEventListener('click', () => {
+            const selectedCourseCode = document.getElementById('teamCourseSelect').value
+            const teamName = document.getElementById('teamName').value.trim()
+
+            //get all selected students
+            const studentCheckboxes = document.querySelectorAll('#teams .form-check-input')
+            const selectedStudents = Array.from(studentCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => cb.value)
+
+            //validation
+            if (!selectedCourseCode) {
+                alert('Please select a course')
+                return
+            }
+            if (!teamName) {
+                alert('Please enter a team name')
+                return
+            }
+            if (selectedStudents.length ===0) {
+                alert('Please select at least one student')
+                return
+            }
+            teams.push({
+                courseCode: selectedCourseCode, teamName,
+                members: selectedStudents
+            })
+
+            //display in the list
+            const listItem = document.createElement('li')
+            listItem.className = 'list-group-item'
+            listItem.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+            <div>
+            <strong>${teamName}</strong> <br> 
+            Course: ${selectedCourseCode} <br>
+            Members: ${selectedStudents.join(',')}
+            </div>
+            <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
+            </div>
+            `
+            teamList.appendChild(listItem)
+
+            //button for deleting team
+            const deleteBtn = listItem.querySelector('.btn-delete-team')
+            deleteBtn.addEventListener('click', () => {
+                listItem.remove()
+                const index = teams.findIndex(team =>
+                    team.teamName === teamName &&
+                    team.courseCode === selectedCourseCode
+                )
+                if (index !== -1) {
+                    teams.splice(index, 1)
+                }
+
+            //reset form
+            document.getElementById('teamName').value = ''
+            studentCheckboxes.forEach(cb => cb.checked = false)
+        })
+    })
+    
     if (generateJoinCodeBtn) {
         generateJoinCodeBtn.addEventListener('click', () => {
             currentJoinCode = generateJoinCode();
@@ -114,5 +181,5 @@ document.addEventListener("DOMContentLoaded", () => {
             currentJoinCode = '';
         });
     }
-});
+}});
 
