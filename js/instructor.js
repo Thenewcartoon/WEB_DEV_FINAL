@@ -61,15 +61,43 @@ document.addEventListener("DOMContentLoaded", () => {
             listItem.className = 'list-group-item'
             listItem.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
-            <div>
-            <strong>${teamName}</strong> <br> 
-            Course: ${selectedCourseCode} <br>
-            Members: ${selectedStudents.join(',')}
+              <div>
+                <strong>${teamName}</strong><br>
+                Course: ${selectedCourseCode}<br>
+                Members: ${selectedStudents.join(', ')}
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
+                <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
+              </div>
             </div>
-            <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
-            </div>
-            `
+          `
             teamList.appendChild(listItem)
+
+
+            //button for editing current team
+            const editBtn = listItem.querySelector('.btn-edit-team');
+            editBtn.addEventListener('click', () => {
+    // Fill the Create Team form with this team's data
+                document.getElementById('teamName').value = teamName;
+                document.getElementById('teamCourseSelect').value = selectedCourseCode;
+
+                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
+                studentCheckboxes.forEach(cb => {
+                    cb.checked = selectedStudents.includes(cb.value);
+                });
+
+                // Optionally: remove the original team so they don't get duplicated on save
+                listItem.remove();
+
+                const index = teams.findIndex(team =>
+                    team.teamName === teamName &&
+                    team.courseCode === selectedCourseCode
+                );
+                if (index !== -1) {
+                    teams.splice(index, 1);
+                }
+            });
 
             //button for deleting team
             const deleteBtn = listItem.querySelector('.btn-delete-team')
