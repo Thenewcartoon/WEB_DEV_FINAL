@@ -27,7 +27,66 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
     
-    //dynamic question type handling
+    //Event listener for when instructor selects a different question
+    document.getElementById('questionType').addEventListener('change', function () {
+        const selectedType = this.value //value of the selected question
+        const optionsContainer = document.getElementById('questionOptionsContainer') //questionOptionsContainer value stored in options container
+    
+        // Always reset first
+        optionsContainer.innerHTML = ''
+        optionsContainer.style.display = 'none' // Start hidden
+        //if selected type is likert, show a fixed 1-5 agreement scale
+        if (selectedType === 'likert') {
+            optionsContainer.style.display = 'block'
+    
+            const likertOptions = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] //scale options
+            likertOptions.forEach(label => { //for each value in the scale, create a new <div> and sets the inner html to include a disabled radio input (so the instructor cant click it) and a label that shows the selected likert option
+                const div = document.createElement('div')
+                div.className = 'form-check'
+                div.innerHTML = `
+                    <input class="form-check-input" type="radio" disabled> 
+                    <label class="form-check-label">${label}</label>
+                `
+                optionsContainer.appendChild(div) //appends radip button + label row into the #questionOptionsContainer
+            })
+            //if the selected type is multiple choice or multiselect, give custom options 
+        } else if (selectedType === 'multiple-choice' || selectedType === 'multi-select') {
+            optionsContainer.style.display = 'block' //shows the extra options
+            //label for the section
+            const label = document.createElement('label')
+            label.className = 'form-label';
+            label.textContent = 'Answer Choices:'
+            optionsContainer.appendChild(label)
+            //container that holds all the answer options
+            const optionList = document.createElement('div')
+            optionList.id = 'mcOptionList'
+            optionsContainer.appendChild(optionList)
+            //add option button that lets instructor add more answer choices
+            const addBtn = document.createElement('button')
+            addBtn.type = 'button'
+            addBtn.className = 'btn btn-sm btn-outline-secondary mt-2'
+            addBtn.textContent = 'Add Option';
+            //add new input row with text box and remove button
+            addBtn.addEventListener('click', () => {
+                const optionInput = document.createElement('div')
+                optionInput.className = 'input-group mb-2'
+                optionInput.innerHTML = `
+                    <input type="text" class="form-control" placeholder="Option text">
+                    <button class="btn btn-outline-danger" type="button">Remove</button>
+                `
+                optionInput.querySelector('button').addEventListener('click', () => { //handle remove button click to delete the input row
+                    optionInput.remove()
+                })
+                optionList.appendChild(optionInput) //add new input row to the option list
+            })
+    
+            optionsContainer.appendChild(addBtn) //add button to the options container
+            addBtn.click(); // Automatically click the add button once to show the first option
+        }
+    
+        // For short answer or essay, the container remains hidden.
+    })
+    
     
     //logic for after pushing the create team button
     if (createTeamBtn) {
