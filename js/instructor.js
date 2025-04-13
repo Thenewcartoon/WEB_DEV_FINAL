@@ -26,6 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
+    
+    //dynamic question type handling
+    
     //logic for after pushing the create team button
     if (createTeamBtn) {
         createTeamBtn.addEventListener('click', () => {
@@ -138,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 🔐 Step 1: Save the join code locally before it's reset
+            //Step 1: Save the join code locally before it's reset
             const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
 
             // Store course in global array
@@ -209,5 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
             currentJoinCode = '';
         });
     }
+
 }});
 

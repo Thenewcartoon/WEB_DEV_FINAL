@@ -141,6 +141,38 @@
             <div class="tab-pane fade" id="reviews" role="tabpanel">
                 <h4>Manage Review Questions</h4>
                 <!-- CRUD for questions (Likert, MCQ, Short Answer) -->
+                <div class="mb-3">
+                    <label for="questionType" class="form-label">Question Type</label>
+                    <select class="form-select" id="questionType">
+                        <option value="" selected disabled>Select question type</option>
+                        <option value="short-answer">Short Answer</option>
+                        <option value="essay">Essay</option>
+                        <option value="likert">Likert Scale</option>
+                        <option value="multiple-choice">Multiple Choice (Single Select)</option>
+                        <option value="multi-select">Multiple Choice (Multi Select)</option>
+                    </select>
+                </div>
+                <!-- Question Text -->
+                <div class="mb-3">
+                    <label for="questionText" class="form-label">Question</label>
+                    <input type="text" class="form-control" id="questionText" placeholder="Enter your question here">
+                </div>
+
+                <!-- Dynamic Options (only for MCQ / Likert) -->
+                <div id="questionOptionsContainer" class="mb-3" style="display: none;">
+                    <!-- Options will be dynamically inserted here -->
+                </div>
+
+                <!-- Add Question Button -->
+                <button class="btn btn-primary mb-4" id="addQuestionBtn">Add Question</button>
+
+                <!-- Preview List -->
+                <h5>Questions in This Review</h5>
+                <ul class="list-group" id="reviewQuestionList">
+                    <!-- Created questions will appear here -->
+                </ul>
+
+                
             </div>
     
             <!-- Schedule Section -->
