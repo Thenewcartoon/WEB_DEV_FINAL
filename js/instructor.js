@@ -258,13 +258,51 @@ function displayAssignedReviews() {
         const review = reviews.find(r => r.id === assign.reviewId) //finds the correct review using reviewID
 
         const item = document.createElement('li'); //create a new <li> for the current assignment
-        item.className = 'list-group-item';
+        item.className = 'list-group-item d-flex justify-content-between align-items-start'
         //set the inner html to show: the review title, the course code and name, and the due date
-        item.innerHTML = `
+        const content = document.createElement('div')
+        content.innerHTML = `
             <strong>${review?.title || 'Unknown Review'}</strong><br>
             Course: ${course?.code || 'Unknown'} - ${course?.name || ''}<br>
             Due: ${assign.dueDate || 'No due date'}
-        `;
+        `
+
+        //button group
+        const btnGroup = document.createElement('div')
+        btnGroup.className = 'btn-group btn-group-sm'
+
+        //edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-outline-primary';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', () => {
+            // Refill form with assignment data
+            document.getElementById('scheduleCourseSelect').value = assign.courseCode
+            document.getElementById('scheduleReviewSelect').value = assign.reviewId
+            document.getElementById('reviewDueDate').value = assign.dueDate
+
+            // Remove original assignment from array
+            assignments = assignments.filter(a => a.id !== assign.id);
+            displayAssignedReviews(); // Re-render the list
+        })
+
+        //delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn btn-outline-danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => {
+            // Remove assignment from array
+            assignments = assignments.filter(a => a.id !== assign.id);
+            displayAssignedReviews(); // Re-render the list
+        });
+
+        // Add buttons to button group
+        btnGroup.appendChild(editBtn);
+        btnGroup.appendChild(deleteBtn);
+
+        // Add everything to the list item
+        item.appendChild(content);
+        item.appendChild(btnGroup);
 
         list.appendChild(item); //add the <li> item to the list
     });
