@@ -1,9 +1,11 @@
 // instructor.js
 
+//global variables
 let courses = []
 let teams = []
 let questions = [] //global questions array
 let reviews = []  //globalreviews array
+let assignments = []
 
 
 //***************************************************FUNCTIONS****************************************************************************************/
@@ -210,6 +212,36 @@ function displaySavedReviews() {
 }
 
 
+//*************Function for filling in the dropdowns on the schedule tab***************** */
+function populateScheduleDropdowns() {
+    const courseSelect = document.getElementById('scheduleCourseSelect');
+    const reviewSelect = document.getElementById('scheduleReviewSelect');
+
+    // Populate courses
+    if (courseSelect) {
+        courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
+        courses.forEach(course => {
+            const opt = document.createElement('option');
+            opt.value = course.code;
+            opt.textContent = `${course.code} - ${course.name}`;
+            courseSelect.appendChild(opt);
+        });
+    }
+
+    // Populate reviews
+    if (reviewSelect) {
+        reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+        reviews.forEach(review => {
+            const opt = document.createElement('option');
+            opt.value = review.id;
+            opt.textContent = review.title;
+            reviewSelect.appendChild(opt);
+        });
+    }
+}
+
+
+
 //***********************************END OF FUNCTIONS************************************************************************ */
 
 
@@ -227,6 +259,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
     
+    //**************Reviews Tab********************************** */
+    //--------------------------------------------------------------------------------------------------------------------------------------
     //Event listener for when instructor selects a different question
     document.getElementById('questionType').addEventListener('change', function () {
         const selectedType = this.value //value of the selected question
@@ -360,6 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
     
         reviews.push(review);
+        populateScheduleDropdowns()
     
         // Reset the form and question list
         document.getElementById('reviewTitle').value = ''
@@ -370,8 +405,12 @@ document.addEventListener("DOMContentLoaded", () => {
         alert("Review saved successfully!")
         displaySavedReviews()
     });
+    //***********************************End of Reviews Tab********************************************************************************/
+    //---------------------------------------------------------------------------------------------------------------------------
     
-    
+    //---------------------------------------------------------------------------------------------------------------------------------------
+    //******************************************Teams Tab******************************************************************************* */
+
     //logic for after pushing the create team button
     if (createTeamBtn) {
         createTeamBtn.addEventListener('click', () => {
@@ -424,7 +463,7 @@ document.addEventListener("DOMContentLoaded", () => {
             //button for editing current team
             const editBtn = listItem.querySelector('.btn-edit-team');
             editBtn.addEventListener('click', () => {
-    // Fill the Create Team form with this team's data
+            // Fill the Create Team form with this team's data
                 document.getElementById('teamName').value = teamName;
                 document.getElementById('teamCourseSelect').value = selectedCourseCode;
 
@@ -462,7 +501,11 @@ document.addEventListener("DOMContentLoaded", () => {
             studentCheckboxes.forEach(cb => cb.checked = false)
         })
     })
-    
+    //********************************************End of Teams tab************************************************************************** */
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+
+    //--------------------------------------------------------------------------------------------------------------------------------------
+    //**************************************************Courses Tab******************************************************************* */
     if (generateJoinCodeBtn) {
         generateJoinCodeBtn.addEventListener('click', () => {
             currentJoinCode = generateJoinCode();
@@ -503,6 +546,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 option.textContent = `${courseCode} - ${courseName}`;
                 teamCourseSelect.appendChild(option);
             }
+
+            populateScheduleDropdowns() //refreshes the Schedule tab dropdowns
             // add course to review tab dropdown
             populateReviewCourseDropdown()
             createCourseForm.reset();
@@ -557,5 +602,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    //***************************************************End of Courses Tab********************************************* */
 }});
 

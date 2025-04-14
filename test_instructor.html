@@ -195,10 +195,43 @@
             </div>
     
             <!-- Schedule Section -->
-            <div class="tab-pane fade" id="schedule" role="tabpanel">
-                <h4>Schedule Peer Reviews</h4>
-                <!-- Select course, date pickers, etc. -->
+            <!-- Schedule Peer Reviews -->
+        <div class="tab-pane fade" id="schedule" role="tabpanel">
+            <h4 class="mb-4">Assign Peer Reviews</h4>
+  
+            <!-- Select Course -->
+            <div class="mb-3">
+            <label for="scheduleCourseSelect" class="form-label">Select Course</label>
+            <select class="form-select" id="scheduleCourseSelect">
+                <option disabled selected>Select a course</option>
+                <!-- Dynamically populated -->
+            </select>
             </div>
+  
+            <!-- Select Review -->
+            <div class="mb-3">
+            <label for="scheduleReviewSelect" class="form-label">Select Review</label>
+            <select class="form-select" id="scheduleReviewSelect">
+                <option disabled selected>Select a review</option>
+                <!-- Dynamically populated -->
+            </select>
+            </div>
+  
+            <!-- Due Date -->
+            <div class="mb-3">
+            <label for="reviewDueDate" class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="reviewDueDate">
+            </div>
+  
+            <!-- Assign Button -->
+            <button class="btn btn-success" id="assignReviewBtn">Assign Review</button>
+  
+            <!-- Success Alert -->
+            <div class="alert alert-success mt-3 d-none" id="assignmentSuccessAlert" role="alert">
+            Review assigned to all teams in the selected course!
+            </div>
+        </div>
+  
     
             <!-- Review Results Section -->
             <div class="tab-pane fade" id="results" role="tabpanel">
