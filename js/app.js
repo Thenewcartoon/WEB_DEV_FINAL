@@ -34,8 +34,8 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         // **********ALL event handlers for the login form below***************
         
         //change title for if user selects student or instructor
-        document.querySelector('#roleSelect').addEventListener('change', function() {
-            const selectedRole = document.querySelector('#roleSelect').value;
+        document.querySelector('#LoginroleSelect').addEventListener('change', function() {
+            const selectedRole = document.querySelector('#LoginroleSelect').value;
             const loginTitleResponsive = document.querySelector('#loginTitleResponsive');
 
             // Show the contact info section if the role is "student"
@@ -51,7 +51,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
 
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
-            let role = document.querySelector('#roleSelect').value  //grabs what role the user selected (student or instructor)
+            let role = document.querySelector('#LoginroleSelect').value  //grabs what role the user selected (student or instructor)
             let blnError = false
             let strMessage = '' 
             let strIsPasswordCorrect = true
@@ -130,8 +130,8 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
         // **********ALL event handlers for the registration form below***************
         
         //change event for if user selects student or instructor
-        document.querySelector('#roleSelect').addEventListener('change', function() {
-            const selectedRole = document.querySelector('#roleSelect').value;
+        document.querySelector('#RegistrationroleSelect').addEventListener('change', function() {
+            const selectedRole = document.querySelector('#RegistrationroleSelect').value;
             const studentContact = document.querySelector('#studentContact');
 
             // Show the contact info section if the role is "student"
@@ -163,7 +163,7 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
             let strLastName = document.querySelector('#txtLastName').value.trim() //grabs what the user entered into the last name box
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
-            let role = document.querySelector('#roleSelect').value  //grabs what role the user selected (student or instructor)
+            let role = document.querySelector('#RegistrationroleSelect').value  //grabs what role the user selected (student or instructor)
             let contactType = document.querySelector('#contactType').value;  //grabs which contact type the user selected ()
             let contactInfo = document.querySelector('#txtContact').value.trim() //grabs what the user entered into the contact info text box
 
