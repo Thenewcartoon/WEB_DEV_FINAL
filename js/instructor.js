@@ -240,6 +240,36 @@ function populateScheduleDropdowns() {
     }
 }
 
+//Function for displaying the assigned reviews created by an instructor
+function displayAssignedReviews() {
+    const list = document.getElementById('assignedReviewsList') //get ul element where the assigned reviews will be displayed
+    list.innerHTML = '' // Clear previous list
+
+    if (assignments.length === 0) { //if there are no assignments, display a message
+        const item = document.createElement('li')
+        item.className = 'list-group-item'
+        item.textContent = 'No reviews have been assigned yet.'
+        list.appendChild(item)
+        return;
+    }
+
+    assignments.forEach(assign => { //loops through each assignment in the assignments array
+        const course = courses.find(c => c.code === assign.courseCode) //finds the correct course using courseCode
+        const review = reviews.find(r => r.id === assign.reviewId) //finds the correct review using reviewID
+
+        const item = document.createElement('li'); //create a new <li> for the current assignment
+        item.className = 'list-group-item';
+        //set the inner html to show: the review title, the course code and name, and the due date
+        item.innerHTML = `
+            <strong>${review?.title || 'Unknown Review'}</strong><br>
+            Course: ${course?.code || 'Unknown'} - ${course?.name || ''}<br>
+            Due: ${assign.dueDate || 'No due date'}
+        `;
+
+        list.appendChild(item); //add the <li> item to the list
+    });
+}
+
 
 
 //***********************************END OF FUNCTIONS************************************************************************ */
@@ -259,7 +289,47 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
     
-    //**************Reviews Tab********************************** */
+    //***************************************Schedule Reviews Tab*************************************************** */
+    //event listener for assign review button
+    document.getElementById('assignReviewBtn').addEventListener('click', () => {
+        const courseCode = document.getElementById('scheduleCourseSelect').value //get selected course code from the drop down
+        const reviewId = document.getElementById('scheduleReviewSelect').value //gets selected review from dropdown
+        const dueDate = document.getElementById('reviewDueDate').value //gets due date from the date input
+    
+        // Validation
+        if (!courseCode || !reviewId) { //makes sure course and review are selected
+            alert("Please select both a course and a review.");
+            return;
+        }
+    
+        // Store the assignment in the assignments array
+        assignments.push({
+            id: crypto.randomUUID(),  //unique ID for future use
+            courseCode,
+            reviewId,
+            dueDate
+        })
+
+        displayAssignedReviews() // calls displayAssignedReviews so the instructor can see what they have made already
+    
+        // Reset form fields
+        document.getElementById('scheduleCourseSelect').selectedIndex = 0
+        document.getElementById('scheduleReviewSelect').selectedIndex = 0
+        document.getElementById('reviewDueDate').value = ''
+    
+        // Show a temporary success message
+        const alertBox = document.getElementById('assignmentSuccessAlert')
+        alertBox.classList.remove('d-none')
+        setTimeout(() => {
+            alertBox.classList.add('d-none') //hides message after 3 seconds
+        }, 3000);
+        
+    });
+    
+
+    
+    
+    //*************************************************Reviews Tab********************************** ***********************/
     //--------------------------------------------------------------------------------------------------------------------------------------
     //Event listener for when instructor selects a different question
     document.getElementById('questionType').addEventListener('change', function () {
