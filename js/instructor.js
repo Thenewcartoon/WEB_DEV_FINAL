@@ -5,7 +5,10 @@ let teams = []
 let questions = [] //global questions array
 let reviews = []  //globalreviews array
 
-// Utility function: Generate a 6-character alphanumeric join code
+
+//***************************************************FUNCTIONS****************************************************************************************/
+
+// Function to generate a 6-character alphanumeric join code
 function generateJoinCode(length = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -15,6 +18,7 @@ function generateJoinCode(length = 6) {
     return code;
 }
 
+//function for displaying each question added. it will show the options if the question has any. Also will have an edit and delete button for the questions
 function renderQuestionPreview(question) {
     const list = document.getElementById('reviewQuestionList')  //Find the <ul> element that will hold all previewed questions
 
@@ -90,6 +94,8 @@ function renderQuestionPreview(question) {
     });
 }
 
+
+//***********Function for displaying courses inside the Select a Course Box under the reviews tab */
 function populateReviewCourseDropdown() {
     const reviewCourseSelect = document.getElementById('reviewCourseSelect');
     if (reviewCourseSelect) {
@@ -204,6 +210,7 @@ function displaySavedReviews() {
 }
 
 
+//***********************************END OF FUNCTIONS************************************************************************ */
 
 
 // Handle "Generate Join Code" button click
@@ -285,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const text = document.getElementById('questionText').value.trim();
         const optionsContainer = document.getElementById('questionOptionsContainer');
     
-        if (!type || !text) {
+        if (!type || !text) { //validation to make sure question type is selected or that a question is created
             alert('Please select a question type and enter a question.');
             return;
         }
