@@ -140,6 +140,20 @@
             <!-- Reviews Section -->
             <div class="tab-pane fade" id="reviews" role="tabpanel">
                 <h4>Manage Review Questions</h4>
+                <!-- Review Title -->
+                <div class="mb-3">
+                    <label for="reviewTitle" class="form-label">Review Title</label>
+                    <input type="text" class="form-control" id="reviewTitle" placeholder="e.g., Teamwork Assessment">
+                </div>
+
+                <!-- Course Selection -->
+                <div class="mb-3">
+                    <label for="reviewCourseSelect" class="form-label">Select Course</label>
+                    <select class="form-select" id="reviewCourseSelect">
+                    <option disabled selected>Select a course</option>
+                    <!-- You'll populate this from the courses[] array -->
+                    </select>
+                </div>
                 <!-- CRUD for questions (Likert, MCQ, Short Answer) -->
                 <div class="mb-3">
                     <label for="questionType" class="form-label">Question Type</label>
@@ -172,6 +186,11 @@
                     <!-- Created questions will appear here -->
                 </ul>
 
+                <button class="btn btn-success" id="saveReviewBtn">Save Review</button>
+                <ul class="list-group" id="savedReviewsList">
+                    <!-- Reviews will appear here -->
+                </ul>
+
                 
             </div>
     
@@ -196,6 +215,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Full Review Modal -->
+    <div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fullReviewModalLabel">Review Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+            <div class="modal-body" id="fullReviewModalBody">
+                <!-- Review content will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/instructor.js"></script>
 </body>
