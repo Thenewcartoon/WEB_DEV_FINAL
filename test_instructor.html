@@ -267,9 +267,21 @@
     
             <!-- Reports Section -->
             <div class="tab-pane fade" id="reports" role="tabpanel">
-                <h4>Generate Reports</h4>
-                <p>Sortable table of student averages (converted to 100pt scale)</p>
-                <!-- Add filters, sort options later -->
+                <h4>Review Reports</h4>
+
+                <div class="mb-3">
+                    <label for="reportCourseSelect" class="form-label">Select Course</label>
+                    <select class="form-select" id="reportCourseSelect">
+                        <option disabled selected>Select a course</option>
+                    <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <button class="btn btn-primary mb-3" id="generateReportBtn">Generate Report</button>
+
+                <ul class="list-group" id="reportResultsList">
+                    <!-- Report items will go here -->
+                </ul>
             </div>
         </div>
     </div>

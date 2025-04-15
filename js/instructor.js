@@ -8,6 +8,10 @@ let reviews = []  //globalreviews array
 let assignments = []
 
 
+
+ 
+
+
 //***************************************************FUNCTIONS****************************************************************************************/
 
 // Function to generate a 6-character alphanumeric join code
@@ -366,7 +370,36 @@ function renderReviewResults() {
         });
     }
 
+//function for displaying reports
+function renderReportsForCourse(courseCode) {
+    const list = document.getElementById('reportResultsList');
+    list.innerHTML = '';
 
+    const item = document.createElement('li');
+    item.className = 'list-group-item text-muted';
+    item.innerHTML = `
+        <em>Student responses and scores will appear here once backend integration is complete.</em>
+    `;
+    list.appendChild(item);
+}
+
+
+
+function populateReportCourseDropdown() {
+    const select = document.getElementById('reportCourseSelect');
+    if (!select) return;
+
+    select.innerHTML = '<option disabled selected>Select a course</option>';
+
+    courses.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.code;
+        opt.textContent = `${c.code} - ${c.name}`;
+        select.appendChild(opt);
+    });
+}
+
+    
 //***********************************END OF FUNCTIONS************************************************************************ */
 
 
@@ -383,6 +416,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let currentJoinCode = ''; // Store latest generated join code (optional)
 
+    //--------------------------------------------------------------------------------------------------
+    //*******************************************Reports Tab**************************************** */
+    //click event for generate reports button. Using a simulation with the 
+    document.getElementById('generateReportBtn').addEventListener('click', () => {
+        const selectedCourse = document.getElementById('reportCourseSelect').value;
+        if (!selectedCourse) {
+            alert("Please select a course to generate the report.");
+            return;
+        }
+        renderReportsForCourse(selectedCourse);
+    });
+
+    
+    //---------------------------------------------------------------------------------------------------------------
+    //*************************************Review Results********************************************************* */
+    document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
+        const selectedCourse = document.getElementById('resultsCourseSelect').value;
+        const selectedReview = document.getElementById('resultsReviewSelect').value;
+    
+        // Simple validation
+        if (!selectedCourse || !selectedReview) {
+            alert("Please select both a course and a review.");
+            return;
+        }
+    
+        // Simulate what will eventually be a backend call
+        console.log("Ready to fetch results for:");
+        console.log("Course Code:", selectedCourse);
+        console.log("Review ID:", selectedReview);
+    
+        // Future backend fetch will go here
+    
+        // Show a placeholder for now
+        const list = document.getElementById('reviewResultsList');
+        list.innerHTML = `
+            <li class="list-group-item text-muted">
+                Placeholder: Review results will be loaded here from the backend.
+            </li>
+        `;
+    });
+    
+    //***************************************End of Review Results*********************************************** */
+    //--------------------------------------------------------------------------------------------------------------
     
     //***************************************Schedule Reviews Tab*************************************************** */
     //event listener for assign review button
@@ -706,6 +782,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             //update review results tab drop down
             populateReviewResultsDropdowns()
+            populateReportCourseDropdown() //populates the select course options in the reports tab
             // Add course to Teams tab dropdown
             const teamCourseSelect = document.getElementById('teamCourseSelect');
             if (teamCourseSelect) {
@@ -769,6 +846,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentJoinCode = '';
         });
     }
+    populateReportCourseDropdown()
 
     //***************************************************End of Courses Tab********************************************* */
 }});
