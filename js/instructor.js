@@ -7,11 +7,6 @@ let questions = [] //global questions array
 let reviews = []  //globalreviews array
 let assignments = []
 
-
-
- 
-
-
 //***************************************************FUNCTIONS****************************************************************************************/
 
 // Function to generate a 6-character alphanumeric join code
@@ -398,456 +393,474 @@ function populateReportCourseDropdown() {
         select.appendChild(opt);
     });
 }
+//---------------------------------------------------------------------------------------------------------------------------------------
 
+/**
+ * Initializes the Instructor Dashboard after the instructor logs in.
+ * This function sets up all event listeners, populates dropdowns, 
+ * and renders the instructor interface components.
+ * 
+ * This is called manually after dynamically inserting instructor.html,
+ * because DOMContentLoaded will NOT fire again after the initial page load.
+ * 
+ * Includes setup for:
+ * - Course creation form and table
+ * - Team creation tools
+ * - Review creation, preview, saving
+ * - Schedule assignments dropdowns
+ * - Tab event listeners and DOM hooks
+ */
+function initalizeInstructorPage() {
     
+        const joinCodeDisplay = document.getElementById('joinCodeDisplay');
+        const joinCodeText = document.getElementById('joinCodeText');
+        const generateJoinCodeBtn = document.getElementById('generateJoinCode');
+        const createCourseForm = document.getElementById('createCourseForm');
+        const courseTableBody = document.getElementById('courseTableBody');
+    
+        const createTeamBtn = document.getElementById('createTeamBtn');
+        const teamList = document.getElementById('teamList');
+    
+        let currentJoinCode = ''; // Store latest generated join code (optional)
+    
+        //--------------------------------------------------------------------------------------------------
+        //*******************************************Reports Tab**************************************** */
+        //click event for generate reports button. Using a simulation with the 
+        document.getElementById('generateReportBtn').addEventListener('click', () => {
+            const selectedCourse = document.getElementById('reportCourseSelect').value;
+            if (!selectedCourse) {
+                alert("Please select a course to generate the report.");
+                return;
+            }
+            renderReportsForCourse(selectedCourse);
+        });
+    
+        
+        //---------------------------------------------------------------------------------------------------------------
+        //*************************************Review Results********************************************************* */
+        document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
+            const selectedCourse = document.getElementById('resultsCourseSelect').value;
+            const selectedReview = document.getElementById('resultsReviewSelect').value;
+        
+            // Simple validation
+            if (!selectedCourse || !selectedReview) {
+                alert("Please select both a course and a review.");
+                return;
+            }
+        
+            // Simulate what will eventually be a backend call
+            console.log("Ready to fetch results for:");
+            console.log("Course Code:", selectedCourse);
+            console.log("Review ID:", selectedReview);
+        
+            // Future backend fetch will go here
+        
+            // Show a placeholder for now
+            const list = document.getElementById('reviewResultsList');
+            list.innerHTML = `
+                <li class="list-group-item text-muted">
+                    Placeholder: Review results will be loaded here from the backend.
+                </li>
+            `;
+        });
+        
+        //***************************************End of Review Results*********************************************** */
+        //--------------------------------------------------------------------------------------------------------------
+        
+        //***************************************Schedule Reviews Tab*************************************************** */
+        //event listener for assign review button
+        document.getElementById('assignReviewBtn').addEventListener('click', () => {
+            const courseCode = document.getElementById('scheduleCourseSelect').value //get selected course code from the drop down
+            const reviewId = document.getElementById('scheduleReviewSelect').value //gets selected review from dropdown
+            const dueDate = document.getElementById('reviewDueDate').value //gets due date from the date input
+        
+            // Validation
+            if (!courseCode || !reviewId) { //makes sure course and review are selected
+                alert("Please select both a course and a review.");
+                return;
+            }
+        
+            // Store the assignment in the assignments array
+            assignments.push({
+                id: crypto.randomUUID(),  //unique ID for future use
+                courseCode,
+                reviewId,
+                dueDate
+            })
+    
+            displayAssignedReviews() // calls displayAssignedReviews so the instructor can see what they have made already
+        
+            // Reset form fields
+            document.getElementById('scheduleCourseSelect').selectedIndex = 0
+            document.getElementById('scheduleReviewSelect').selectedIndex = 0
+            document.getElementById('reviewDueDate').value = ''
+        
+            // Show a temporary success message
+            const alertBox = document.getElementById('assignmentSuccessAlert')
+            alertBox.classList.remove('d-none')
+            setTimeout(() => {
+                alertBox.classList.add('d-none') //hides message after 3 seconds
+            }, 3000);
+            
+        });
+        
+    
+        
+        
+        //*************************************************Reviews Tab********************************** ***********************/
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //Event listener for when instructor selects a different question
+        document.getElementById('questionType').addEventListener('change', function () {
+            const selectedType = this.value //value of the selected question
+            const optionsContainer = document.getElementById('questionOptionsContainer') //questionOptionsContainer value stored in options container
+        
+            // Always reset first
+            optionsContainer.innerHTML = ''
+            optionsContainer.style.display = 'none' // Start hidden
+            //if selected type is likert, show a fixed 1-5 agreement scale
+            if (selectedType === 'likert') {
+                optionsContainer.style.display = 'block'
+        
+                const likertOptions = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] //scale options
+                likertOptions.forEach(label => { //for each value in the scale, create a new <div> and sets the inner html to include a disabled radio input (so the instructor cant click it) and a label that shows the selected likert option
+                    const div = document.createElement('div')
+                    div.className = 'form-check'
+                    div.innerHTML = `
+                        <input class="form-check-input" type="radio" disabled> 
+                        <label class="form-check-label">${label}</label>
+                    `
+                    optionsContainer.appendChild(div) //appends radip button + label row into the #questionOptionsContainer
+                })
+                //if the selected type is multiple choice or multiselect, give custom options 
+            } else if (selectedType === 'multiple-choice' || selectedType === 'multi-select') {
+                optionsContainer.style.display = 'block' //shows the extra options
+                //label for the section
+                const label = document.createElement('label')
+                label.className = 'form-label';
+                label.textContent = 'Answer Choices:'
+                optionsContainer.appendChild(label)
+                //container that holds all the answer options
+                const optionList = document.createElement('div')
+                optionList.id = 'mcOptionList'
+                optionsContainer.appendChild(optionList)
+                //add option button that lets instructor add more answer choices
+                const addBtn = document.createElement('button')
+                addBtn.type = 'button'
+                addBtn.className = 'btn btn-sm btn-outline-secondary mt-2'
+                addBtn.textContent = 'Add Option';
+                //add new input row with text box and remove button
+                addBtn.addEventListener('click', () => {
+                    const optionInput = document.createElement('div')
+                    optionInput.className = 'input-group mb-2'
+                    optionInput.innerHTML = `
+                        <input type="text" class="form-control" placeholder="Option text">
+                        <button class="btn btn-outline-danger" type="button">Remove</button>
+                    `
+                    optionInput.querySelector('button').addEventListener('click', () => { //handle remove button click to delete the input row
+                        optionInput.remove()
+                    })
+                    optionList.appendChild(optionInput) //add new input row to the option list
+                })
+        
+                optionsContainer.appendChild(addBtn) //add button to the options container
+                addBtn.click(); // Automatically click the add button once to show the first option
+            }
+        
+            // For short answer or essay, the container remains hidden.
+        })
+        
+        document.getElementById('addQuestionBtn').addEventListener('click', () => {
+            const type = document.getElementById('questionType').value;
+            const text = document.getElementById('questionText').value.trim();
+            const optionsContainer = document.getElementById('questionOptionsContainer');
+        
+            if (!type || !text) { //validation to make sure question type is selected or that a question is created
+                alert('Please select a question type and enter a question.');
+                return;
+            }
+        
+            let options = [];
+        
+            if (type === 'multiple-choice' || type === 'multi-select') {
+                const optionInputs = optionsContainer.querySelectorAll('#mcOptionList input');
+                optionInputs.forEach(input => {
+                    const val = input.value.trim();
+                    if (val !== '') {
+                        options.push(val);
+                    }
+                });
+        
+                if (options.length < 2) {
+                    alert('Please enter at least 2 answer choices.');
+                    return;
+                }
+            } else if (type === 'likert') {
+                options = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+            }
+        
+            // Create question object
+            const question = {
+                id: crypto.randomUUID(), // for tracking/editing/deleting later
+                type,
+                text,
+                options
+            };
+        
+            // Save it
+            questions.push(question);
+        
+            // Render it in the preview list
+            renderQuestionPreview(question);
+        
+            // Clear form
+            document.getElementById('questionText').value = '';
+            document.getElementById('questionType').value = '';
+            optionsContainer.innerHTML = '';
+            optionsContainer.style.display = 'none';
+        });
+        
+        // click event after clicking the Save review button
+        document.getElementById('saveReviewBtn').addEventListener('click', () => {
+            const title = document.getElementById('reviewTitle').value.trim();
+            const course = document.getElementById('reviewCourseSelect').value;
+        
+            if (!title || !course) {
+                alert("Please enter a review title and select a course.");
+                return;
+            }
+        
+            if (questions.length === 0) {
+                alert("Please add at least one question to the review.");
+                return;
+            }
+        
+            const review = {
+                id: crypto.randomUUID(),
+                title,
+                courseCode: course,
+                questions: [...questions] // copy the questions array
+            };
+        
+            reviews.push(review);
+            populateScheduleDropdowns()
+            populateReviewResultsDropdowns() //call populareReviewResultsDropdowns to fill in select boxes on review results tab
+        
+            // Reset the form and question list
+            document.getElementById('reviewTitle').value = ''
+            document.getElementById('reviewCourseSelect').selectedIndex = 0
+            document.getElementById('reviewQuestionList').innerHTML = ''
+            questions = [];
+        
+            alert("Review saved successfully!")
+            displaySavedReviews()
+        });
+        //***********************************End of Reviews Tab********************************************************************************/
+        //---------------------------------------------------------------------------------------------------------------------------
+        
+        //---------------------------------------------------------------------------------------------------------------------------------------
+        //******************************************Teams Tab******************************************************************************* */
+    
+        //logic for after pushing the create team button
+        if (createTeamBtn) {
+            createTeamBtn.addEventListener('click', () => {
+                const selectedCourseCode = document.getElementById('teamCourseSelect').value
+                const teamName = document.getElementById('teamName').value.trim()
+    
+                //get all selected students
+                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input')
+                const selectedStudents = Array.from(studentCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value)
+    
+                //validation
+                if (!selectedCourseCode) {
+                    alert('Please select a course')
+                    return
+                }
+                if (!teamName) {
+                    alert('Please enter a team name')
+                    return
+                }
+                if (selectedStudents.length ===0) {
+                    alert('Please select at least one student')
+                    return
+                }
+                teams.push({
+                    courseCode: selectedCourseCode, teamName,
+                    members: selectedStudents
+                })
+    
+                //display in the list
+                const listItem = document.createElement('li')
+                listItem.className = 'list-group-item'
+                listItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>${teamName}</strong><br>
+                    Course: ${selectedCourseCode}<br>
+                    Members: ${selectedStudents.join(', ')}
+                  </div>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
+                  </div>
+                </div>
+              `
+                teamList.appendChild(listItem)
+    
+    
+                //button for editing current team
+                const editBtn = listItem.querySelector('.btn-edit-team');
+                editBtn.addEventListener('click', () => {
+                // Fill the Create Team form with this team's data
+                    document.getElementById('teamName').value = teamName;
+                    document.getElementById('teamCourseSelect').value = selectedCourseCode;
+    
+                    const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
+                    studentCheckboxes.forEach(cb => {
+                        cb.checked = selectedStudents.includes(cb.value);
+                    });
+    
+                    // Optionally: remove the original team so they don't get duplicated on save
+                    listItem.remove();
+    
+                    const index = teams.findIndex(team =>
+                        team.teamName === teamName &&
+                        team.courseCode === selectedCourseCode
+                    );
+                    if (index !== -1) {
+                        teams.splice(index, 1);
+                    }
+                });
+    
+                //button for deleting team
+                const deleteBtn = listItem.querySelector('.btn-delete-team')
+                deleteBtn.addEventListener('click', () => {
+                    listItem.remove()
+                    const index = teams.findIndex(team =>
+                        team.teamName === teamName &&
+                        team.courseCode === selectedCourseCode
+                    )
+                    if (index !== -1) {
+                        teams.splice(index, 1)
+                    }
+    
+                //reset form
+                document.getElementById('teamName').value = ''
+                studentCheckboxes.forEach(cb => cb.checked = false)
+            })
+        })
+        //********************************************End of Teams tab************************************************************************** */
+        //-----------------------------------------------------------------------------------------------------------------------------------------
+    
+        //--------------------------------------------------------------------------------------------------------------------------------------
+        //**************************************************Courses Tab******************************************************************* */
+        if (generateJoinCodeBtn) {
+            generateJoinCodeBtn.addEventListener('click', () => {
+                currentJoinCode = generateJoinCode();
+                joinCodeText.textContent = currentJoinCode;
+                joinCodeDisplay.classList.remove('d-none');
+            });
+        }
+    
+        // Handle course creation form submission
+        if (createCourseForm) {
+            createCourseForm.addEventListener('submit', function (e) {
+                e.preventDefault(); // Prevent form from reloading the page
+    
+                const courseName = document.getElementById('courseName').value.trim();
+                const courseCode = document.getElementById('courseCode').value.trim();
+    
+                if (!courseName || !courseCode) {
+                    alert("Please enter both course name and course code.");
+                    return;
+                }
+    
+                //Step 1: Save the join code locally before it's reset
+                const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
+    
+                // Store course in global array
+                courses.push({
+                    name: courseName,
+                    code: courseCode,
+                    joinCode: joinCodeForThisCourse,
+                    students: [] // we'll use this later
+                });
+                
+                //update review results tab drop down
+                populateReviewResultsDropdowns()
+                populateReportCourseDropdown() //populates the select course options in the reports tab
+                // Add course to Teams tab dropdown
+                const teamCourseSelect = document.getElementById('teamCourseSelect');
+                if (teamCourseSelect) {
+                    const option = document.createElement('option');
+                    option.value = courseCode;
+                    option.textContent = `${courseCode} - ${courseName}`;
+                    teamCourseSelect.appendChild(option);
+                }
+    
+                populateScheduleDropdowns() //refreshes the Schedule tab dropdowns
+                // add course to review tab dropdown
+                populateReviewCourseDropdown()
+                createCourseForm.reset();
+                joinCodeDisplay.classList.add('d-none');
+                currentJoinCode = '';
+    
+                
+                
+                // Add course row to table
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>${courseName}</td>
+                    <td>${courseCode}</td>
+                    <td>${joinCodeForThisCourse}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info">View Students</button>
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </td>
+                `;
+                courseTableBody.appendChild(newRow);
+    
+                // Add delete button functionality to this row
+                const deleteButton = newRow.querySelector('.btn-outline-danger');
+                deleteButton.addEventListener('click', () => {
+                    // Remove row from the table
+                    newRow.remove();
+    
+                    // Remove from the courses array
+                    const indexToRemove = courses.findIndex(c => c.code === courseCode);
+                    if (indexToRemove !== -1) {
+                        courses.splice(indexToRemove, 1);
+                    }
+    
+                    // Remove from the Teams tab dropdown
+                    const teamCourseSelect = document.getElementById('teamCourseSelect');
+                    if (teamCourseSelect) {
+                        const options = teamCourseSelect.options;
+                        for (let i = 0; i < options.length; i++) {
+                            if (options[i].value === courseCode) {
+                                teamCourseSelect.remove(i);
+                                break;
+                            }
+                        }
+                    }
+                });
+    
+    
+                // Reset form & join code
+                createCourseForm.reset();
+                joinCodeDisplay.classList.add('d-none');
+                currentJoinCode = '';
+            });
+        }
+        populateReportCourseDropdown()
+    
+        //***************************************************End of Courses Tab********************************************* */
+    }};
+
 //***********************************END OF FUNCTIONS************************************************************************ */
 
 
 // Handle "Generate Join Code" button click
-document.addEventListener("DOMContentLoaded", () => {
-    const joinCodeDisplay = document.getElementById('joinCodeDisplay');
-    const joinCodeText = document.getElementById('joinCodeText');
-    const generateJoinCodeBtn = document.getElementById('generateJoinCode');
-    const createCourseForm = document.getElementById('createCourseForm');
-    const courseTableBody = document.getElementById('courseTableBody');
 
-    const createTeamBtn = document.getElementById('createTeamBtn');
-    const teamList = document.getElementById('teamList');
-
-    let currentJoinCode = ''; // Store latest generated join code (optional)
-
-    //--------------------------------------------------------------------------------------------------
-    //*******************************************Reports Tab**************************************** */
-    //click event for generate reports button. Using a simulation with the 
-    document.getElementById('generateReportBtn').addEventListener('click', () => {
-        const selectedCourse = document.getElementById('reportCourseSelect').value;
-        if (!selectedCourse) {
-            alert("Please select a course to generate the report.");
-            return;
-        }
-        renderReportsForCourse(selectedCourse);
-    });
-
-    
-    //---------------------------------------------------------------------------------------------------------------
-    //*************************************Review Results********************************************************* */
-    document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
-        const selectedCourse = document.getElementById('resultsCourseSelect').value;
-        const selectedReview = document.getElementById('resultsReviewSelect').value;
-    
-        // Simple validation
-        if (!selectedCourse || !selectedReview) {
-            alert("Please select both a course and a review.");
-            return;
-        }
-    
-        // Simulate what will eventually be a backend call
-        console.log("Ready to fetch results for:");
-        console.log("Course Code:", selectedCourse);
-        console.log("Review ID:", selectedReview);
-    
-        // Future backend fetch will go here
-    
-        // Show a placeholder for now
-        const list = document.getElementById('reviewResultsList');
-        list.innerHTML = `
-            <li class="list-group-item text-muted">
-                Placeholder: Review results will be loaded here from the backend.
-            </li>
-        `;
-    });
-    
-    //***************************************End of Review Results*********************************************** */
-    //--------------------------------------------------------------------------------------------------------------
-    
-    //***************************************Schedule Reviews Tab*************************************************** */
-    //event listener for assign review button
-    document.getElementById('assignReviewBtn').addEventListener('click', () => {
-        const courseCode = document.getElementById('scheduleCourseSelect').value //get selected course code from the drop down
-        const reviewId = document.getElementById('scheduleReviewSelect').value //gets selected review from dropdown
-        const dueDate = document.getElementById('reviewDueDate').value //gets due date from the date input
-    
-        // Validation
-        if (!courseCode || !reviewId) { //makes sure course and review are selected
-            alert("Please select both a course and a review.");
-            return;
-        }
-    
-        // Store the assignment in the assignments array
-        assignments.push({
-            id: crypto.randomUUID(),  //unique ID for future use
-            courseCode,
-            reviewId,
-            dueDate
-        })
-
-        displayAssignedReviews() // calls displayAssignedReviews so the instructor can see what they have made already
-    
-        // Reset form fields
-        document.getElementById('scheduleCourseSelect').selectedIndex = 0
-        document.getElementById('scheduleReviewSelect').selectedIndex = 0
-        document.getElementById('reviewDueDate').value = ''
-    
-        // Show a temporary success message
-        const alertBox = document.getElementById('assignmentSuccessAlert')
-        alertBox.classList.remove('d-none')
-        setTimeout(() => {
-            alertBox.classList.add('d-none') //hides message after 3 seconds
-        }, 3000);
-        
-    });
-    
-
-    
-    
-    //*************************************************Reviews Tab********************************** ***********************/
-    //--------------------------------------------------------------------------------------------------------------------------------------
-    //Event listener for when instructor selects a different question
-    document.getElementById('questionType').addEventListener('change', function () {
-        const selectedType = this.value //value of the selected question
-        const optionsContainer = document.getElementById('questionOptionsContainer') //questionOptionsContainer value stored in options container
-    
-        // Always reset first
-        optionsContainer.innerHTML = ''
-        optionsContainer.style.display = 'none' // Start hidden
-        //if selected type is likert, show a fixed 1-5 agreement scale
-        if (selectedType === 'likert') {
-            optionsContainer.style.display = 'block'
-    
-            const likertOptions = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] //scale options
-            likertOptions.forEach(label => { //for each value in the scale, create a new <div> and sets the inner html to include a disabled radio input (so the instructor cant click it) and a label that shows the selected likert option
-                const div = document.createElement('div')
-                div.className = 'form-check'
-                div.innerHTML = `
-                    <input class="form-check-input" type="radio" disabled> 
-                    <label class="form-check-label">${label}</label>
-                `
-                optionsContainer.appendChild(div) //appends radip button + label row into the #questionOptionsContainer
-            })
-            //if the selected type is multiple choice or multiselect, give custom options 
-        } else if (selectedType === 'multiple-choice' || selectedType === 'multi-select') {
-            optionsContainer.style.display = 'block' //shows the extra options
-            //label for the section
-            const label = document.createElement('label')
-            label.className = 'form-label';
-            label.textContent = 'Answer Choices:'
-            optionsContainer.appendChild(label)
-            //container that holds all the answer options
-            const optionList = document.createElement('div')
-            optionList.id = 'mcOptionList'
-            optionsContainer.appendChild(optionList)
-            //add option button that lets instructor add more answer choices
-            const addBtn = document.createElement('button')
-            addBtn.type = 'button'
-            addBtn.className = 'btn btn-sm btn-outline-secondary mt-2'
-            addBtn.textContent = 'Add Option';
-            //add new input row with text box and remove button
-            addBtn.addEventListener('click', () => {
-                const optionInput = document.createElement('div')
-                optionInput.className = 'input-group mb-2'
-                optionInput.innerHTML = `
-                    <input type="text" class="form-control" placeholder="Option text">
-                    <button class="btn btn-outline-danger" type="button">Remove</button>
-                `
-                optionInput.querySelector('button').addEventListener('click', () => { //handle remove button click to delete the input row
-                    optionInput.remove()
-                })
-                optionList.appendChild(optionInput) //add new input row to the option list
-            })
-    
-            optionsContainer.appendChild(addBtn) //add button to the options container
-            addBtn.click(); // Automatically click the add button once to show the first option
-        }
-    
-        // For short answer or essay, the container remains hidden.
-    })
-    
-    document.getElementById('addQuestionBtn').addEventListener('click', () => {
-        const type = document.getElementById('questionType').value;
-        const text = document.getElementById('questionText').value.trim();
-        const optionsContainer = document.getElementById('questionOptionsContainer');
-    
-        if (!type || !text) { //validation to make sure question type is selected or that a question is created
-            alert('Please select a question type and enter a question.');
-            return;
-        }
-    
-        let options = [];
-    
-        if (type === 'multiple-choice' || type === 'multi-select') {
-            const optionInputs = optionsContainer.querySelectorAll('#mcOptionList input');
-            optionInputs.forEach(input => {
-                const val = input.value.trim();
-                if (val !== '') {
-                    options.push(val);
-                }
-            });
-    
-            if (options.length < 2) {
-                alert('Please enter at least 2 answer choices.');
-                return;
-            }
-        } else if (type === 'likert') {
-            options = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-        }
-    
-        // Create question object
-        const question = {
-            id: crypto.randomUUID(), // for tracking/editing/deleting later
-            type,
-            text,
-            options
-        };
-    
-        // Save it
-        questions.push(question);
-    
-        // Render it in the preview list
-        renderQuestionPreview(question);
-    
-        // Clear form
-        document.getElementById('questionText').value = '';
-        document.getElementById('questionType').value = '';
-        optionsContainer.innerHTML = '';
-        optionsContainer.style.display = 'none';
-    });
-    
-    // click event after clicking the Save review button
-    document.getElementById('saveReviewBtn').addEventListener('click', () => {
-        const title = document.getElementById('reviewTitle').value.trim();
-        const course = document.getElementById('reviewCourseSelect').value;
-    
-        if (!title || !course) {
-            alert("Please enter a review title and select a course.");
-            return;
-        }
-    
-        if (questions.length === 0) {
-            alert("Please add at least one question to the review.");
-            return;
-        }
-    
-        const review = {
-            id: crypto.randomUUID(),
-            title,
-            courseCode: course,
-            questions: [...questions] // copy the questions array
-        };
-    
-        reviews.push(review);
-        populateScheduleDropdowns()
-        populateReviewResultsDropdowns() //call populareReviewResultsDropdowns to fill in select boxes on review results tab
-    
-        // Reset the form and question list
-        document.getElementById('reviewTitle').value = ''
-        document.getElementById('reviewCourseSelect').selectedIndex = 0
-        document.getElementById('reviewQuestionList').innerHTML = ''
-        questions = [];
-    
-        alert("Review saved successfully!")
-        displaySavedReviews()
-    });
-    //***********************************End of Reviews Tab********************************************************************************/
-    //---------------------------------------------------------------------------------------------------------------------------
-    
-    //---------------------------------------------------------------------------------------------------------------------------------------
-    //******************************************Teams Tab******************************************************************************* */
-
-    //logic for after pushing the create team button
-    if (createTeamBtn) {
-        createTeamBtn.addEventListener('click', () => {
-            const selectedCourseCode = document.getElementById('teamCourseSelect').value
-            const teamName = document.getElementById('teamName').value.trim()
-
-            //get all selected students
-            const studentCheckboxes = document.querySelectorAll('#teams .form-check-input')
-            const selectedStudents = Array.from(studentCheckboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value)
-
-            //validation
-            if (!selectedCourseCode) {
-                alert('Please select a course')
-                return
-            }
-            if (!teamName) {
-                alert('Please enter a team name')
-                return
-            }
-            if (selectedStudents.length ===0) {
-                alert('Please select at least one student')
-                return
-            }
-            teams.push({
-                courseCode: selectedCourseCode, teamName,
-                members: selectedStudents
-            })
-
-            //display in the list
-            const listItem = document.createElement('li')
-            listItem.className = 'list-group-item'
-            listItem.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>${teamName}</strong><br>
-                Course: ${selectedCourseCode}<br>
-                Members: ${selectedStudents.join(', ')}
-              </div>
-              <div class="btn-group">
-                <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
-                <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
-              </div>
-            </div>
-          `
-            teamList.appendChild(listItem)
-
-
-            //button for editing current team
-            const editBtn = listItem.querySelector('.btn-edit-team');
-            editBtn.addEventListener('click', () => {
-            // Fill the Create Team form with this team's data
-                document.getElementById('teamName').value = teamName;
-                document.getElementById('teamCourseSelect').value = selectedCourseCode;
-
-                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
-                studentCheckboxes.forEach(cb => {
-                    cb.checked = selectedStudents.includes(cb.value);
-                });
-
-                // Optionally: remove the original team so they don't get duplicated on save
-                listItem.remove();
-
-                const index = teams.findIndex(team =>
-                    team.teamName === teamName &&
-                    team.courseCode === selectedCourseCode
-                );
-                if (index !== -1) {
-                    teams.splice(index, 1);
-                }
-            });
-
-            //button for deleting team
-            const deleteBtn = listItem.querySelector('.btn-delete-team')
-            deleteBtn.addEventListener('click', () => {
-                listItem.remove()
-                const index = teams.findIndex(team =>
-                    team.teamName === teamName &&
-                    team.courseCode === selectedCourseCode
-                )
-                if (index !== -1) {
-                    teams.splice(index, 1)
-                }
-
-            //reset form
-            document.getElementById('teamName').value = ''
-            studentCheckboxes.forEach(cb => cb.checked = false)
-        })
-    })
-    //********************************************End of Teams tab************************************************************************** */
-    //-----------------------------------------------------------------------------------------------------------------------------------------
-
-    //--------------------------------------------------------------------------------------------------------------------------------------
-    //**************************************************Courses Tab******************************************************************* */
-    if (generateJoinCodeBtn) {
-        generateJoinCodeBtn.addEventListener('click', () => {
-            currentJoinCode = generateJoinCode();
-            joinCodeText.textContent = currentJoinCode;
-            joinCodeDisplay.classList.remove('d-none');
-        });
-    }
-
-    // Handle course creation form submission
-    if (createCourseForm) {
-        createCourseForm.addEventListener('submit', function (e) {
-            e.preventDefault(); // Prevent form from reloading the page
-
-            const courseName = document.getElementById('courseName').value.trim();
-            const courseCode = document.getElementById('courseCode').value.trim();
-
-            if (!courseName || !courseCode) {
-                alert("Please enter both course name and course code.");
-                return;
-            }
-
-            //Step 1: Save the join code locally before it's reset
-            const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
-
-            // Store course in global array
-            courses.push({
-                name: courseName,
-                code: courseCode,
-                joinCode: joinCodeForThisCourse,
-                students: [] // we'll use this later
-            });
-            
-            //update review results tab drop down
-            populateReviewResultsDropdowns()
-            populateReportCourseDropdown() //populates the select course options in the reports tab
-            // Add course to Teams tab dropdown
-            const teamCourseSelect = document.getElementById('teamCourseSelect');
-            if (teamCourseSelect) {
-                const option = document.createElement('option');
-                option.value = courseCode;
-                option.textContent = `${courseCode} - ${courseName}`;
-                teamCourseSelect.appendChild(option);
-            }
-
-            populateScheduleDropdowns() //refreshes the Schedule tab dropdowns
-            // add course to review tab dropdown
-            populateReviewCourseDropdown()
-            createCourseForm.reset();
-            joinCodeDisplay.classList.add('d-none');
-            currentJoinCode = '';
-
-            
-            
-            // Add course row to table
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td>${courseName}</td>
-                <td>${courseCode}</td>
-                <td>${joinCodeForThisCourse}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-info">View Students</button>
-                    <button class="btn btn-sm btn-outline-danger">Delete</button>
-                </td>
-            `;
-            courseTableBody.appendChild(newRow);
-
-            // Add delete button functionality to this row
-            const deleteButton = newRow.querySelector('.btn-outline-danger');
-            deleteButton.addEventListener('click', () => {
-                // Remove row from the table
-                newRow.remove();
-
-                // Remove from the courses array
-                const indexToRemove = courses.findIndex(c => c.code === courseCode);
-                if (indexToRemove !== -1) {
-                    courses.splice(indexToRemove, 1);
-                }
-
-                // Remove from the Teams tab dropdown
-                const teamCourseSelect = document.getElementById('teamCourseSelect');
-                if (teamCourseSelect) {
-                    const options = teamCourseSelect.options;
-                    for (let i = 0; i < options.length; i++) {
-                        if (options[i].value === courseCode) {
-                            teamCourseSelect.remove(i);
-                            break;
-                        }
-                    }
-                }
-            });
-
-
-            // Reset form & join code
-            createCourseForm.reset();
-            joinCodeDisplay.classList.add('d-none');
-            currentJoinCode = '';
-        });
-    }
-    populateReportCourseDropdown()
-
-    //***************************************************End of Courses Tab********************************************* */
-}});
 
