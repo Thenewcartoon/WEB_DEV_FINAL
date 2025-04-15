@@ -240,9 +240,29 @@
     
             <!-- Review Results Section -->
             <div class="tab-pane fade" id="results" role="tabpanel">
-                <h4>View Review Submissions</h4>
-                <button class="btn btn-info my-2">View Private Reviews</button>
-                <button class="btn btn-outline-info my-2">View Public Reviews</button>
+                <h4>Submitted Peer Reviews</h4>
+
+                <div class="mb-3">
+                    <label for="resultsCourseSelect" class="form-label">Select Course</label>
+                    <select class="form-select" id="resultsCourseSelect">
+                        <option selected disabled>Select a course</option>
+                    <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="resultsReviewSelect" class="form-label">Select Review</label>
+                    <select class="form-select" id="resultsReviewSelect">
+                        <option selected disabled>Select a review</option>
+                    <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <button class="btn btn-primary mb-3" id="viewReviewResultsBtn">View Results</button>
+
+                <ul class="list-group" id="reviewResultsList">
+                <!-- Rendered results will go here -->
+                </ul>
             </div>
     
             <!-- Reports Section -->
