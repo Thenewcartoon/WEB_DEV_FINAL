@@ -309,6 +309,63 @@ function displayAssignedReviews() {
 }
 
 
+function populateReviewResultsDropdowns() {
+    const courseSelect = document.getElementById('resultsCourseSelect');
+    const reviewSelect = document.getElementById('resultsReviewSelect');
+
+    if (!courseSelect || !reviewSelect) return;
+
+    // Populate course dropdown
+    courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
+    courses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.code;
+        option.textContent = `${course.code} - ${course.name}`;
+        courseSelect.appendChild(option);
+        });
+
+    // Populate review dropdown
+    reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+    reviews.forEach(review => {
+        const option = document.createElement('option');
+        option.value = review.id;
+        option.textContent = review.title;
+        reviewSelect.appendChild(option);
+    });
+}
+
+
+
+function renderReviewResults() {
+    const courseCode = document.getElementById('resultsCourseSelect').value;
+    const reviewId = document.getElementById('resultsReviewSelect').value;
+    const list = document.getElementById('reviewResultsList');
+
+    list.innerHTML = ''; // Clear old results
+
+    // Filter responses for this course + review
+    const filtered = responses.filter(r => r.courseCode === courseCode && r.reviewId === reviewId);
+
+    if (filtered.length === 0) {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = 'No submissions found for this review.';
+        list.appendChild(li);
+        return;
+        }
+
+    filtered.forEach(r => {
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.innerHTML = `
+            <strong>Student:</strong> ${r.student}<br>
+            <strong>Public Feedback:</strong> ${r.publicFeedback}<br>
+            <strong>Private Feedback:</strong> ${r.privateFeedback}
+        `
+        list.appendChild(item);
+        });
+    }
+
 
 //***********************************END OF FUNCTIONS************************************************************************ */
 
@@ -503,6 +560,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
         reviews.push(review);
         populateScheduleDropdowns()
+        populateReviewResultsDropdowns() //call populareReviewResultsDropdowns to fill in select boxes on review results tab
     
         // Reset the form and question list
         document.getElementById('reviewTitle').value = ''
@@ -645,7 +703,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 joinCode: joinCodeForThisCourse,
                 students: [] // we'll use this later
             });
-
+            
+            //update review results tab drop down
+            populateReviewResultsDropdowns()
             // Add course to Teams tab dropdown
             const teamCourseSelect = document.getElementById('teamCourseSelect');
             if (teamCourseSelect) {
