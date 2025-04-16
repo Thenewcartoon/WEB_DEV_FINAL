@@ -1,23 +1,8 @@
 //global variables
 const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
 const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
+let users = []
 //end global variables
-
-// Reset Password button event listener. all validation and click events for Reset Password page must be handled inside this event
-// document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
-//     fetch("components/resetPassword.html") //makes http request to get the content of the login.html file from the components directory
-//     .then(response => response.text())  //takes response from fetch request and extracts its text content
-//     .then(html => { //takes the html text and runs code in this callback function
-
-//         // Back to selection screen button
-//         document.querySelector('#btnSwapLogin').addEventListener('click', function(){
-//             document.querySelector('#frmLogin').style.display = 'none';
-//             document.querySelector('#divSelect').style.display = 'block';
-//         });
-//     })
-//     .catch(error => console.error("Error fetching Login form:", error));
-// })
-
 
 // Login button event listener. all validation and click events for Login page must be handled inside this event
 document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
@@ -86,13 +71,54 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     html: strMessage,
                     icon: "error"
                 });
-            } else {
-                Swal.fire({
-                    title: "Success!",
-                    text: "Your form has been submitted.",
-                    icon: "success"
-                });
+                return
             }
+            const users = JSON.parse(localStorage.getItem('users')) || []
+            //find matching user
+            const matchedUser = users.find(u => 
+                u.email === strEmail &&
+                u.password === strPassword &&
+                u.role === role
+            )
+            if (!matchedUser) {
+                Swal.fire({
+                    title: 'Login Failed',
+                    text: 'Invalid credentials or role selection.',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            //login success
+            Swal.fire({
+                title: 'Login Successful!',
+                text: `Welcome, ${matchedUser.firstName}`,
+                icon: 'success'
+            }).then(() => {
+                // Hide login form
+                document.querySelector('#frmLogin').remove()
+
+                //redirect to appropriate role page
+                if (role === 'instructor') {
+                    fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
+                    .then(res => res.text())
+                    .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
+
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("instructorPage").style.display = "block"; //displays instructor page
+                        initalizeInstructorPage()
+                })
+                }else if(selectedRole === 'student') {
+                    fetch("components/student.html")
+                    .then(res => res.text())
+                    .then(html => {
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("studentPage").style.display = "block"; //displays student page
+                })
+                }
+            })
         });
 
         // Back to landing screen button
@@ -232,10 +258,41 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
                     icon: "error"
                 });
             } else {
+                // 🔐 Step 1: Load existing users from localStorage (or use empty array)
+                let users = JSON.parse(localStorage.getItem('users')) || [];
+
+                    // 🔍 Step 2: Prevent duplicate registration by email
+                const existing = users.find(u => u.email === strEmail);
+                if (existing) {
+                    Swal.fire({
+                        title: "Duplicate Account",
+                        text: "An account with this email already exists.",
+                        icon: "error"
+                    });
+                    return;
+                }
+
+    // 💾 Step 3: Add user to array
+                users.push({
+                    firstName: strFirstName,
+                    lastName: strLastName,
+                    email: strEmail,
+                    password: strPassword,
+                    role: role,
+                    contact: (role === 'student') ? { type: contactType, info: contactInfo } : null
+                });
+
+                // 💽 Step 4: Save updated array to localStorage
+                localStorage.setItem('users', JSON.stringify(users));
+
+                // 🎉 Step 5: Show confirmation
                 Swal.fire({
-                    title: "Success!",
-                    text: "Your form has been submitted.",
+                    title: "Registered!",
+                    text: "You can now log in.",
                     icon: "success"
+                }).then(() => {
+        // Optional: go back to homepage
+                    document.querySelector('#btnSwapLogin').click();
                 });
             }
         });
