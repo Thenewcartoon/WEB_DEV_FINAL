@@ -1,11 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Page Test</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body> -->
     <div id="studentPage" class="container mt-5">
         <h2 class="text-center mb-4">Student Dashboard</h2>
     
@@ -38,22 +30,6 @@
             <!-- Courses Section -->
             <div class="tab-pane fade show active" id="courses" role="tabpanel">
             <h4>Manage Courses</h4>
-
-            <!-- Course Creation Form
-            <form id="createCourseForm" class="mb-4">
-                <div class="mb-3">
-                    <label for="courseName" class="form-label">Course Name</label>
-                    <input type="text" class="form-control" id="courseName" placeholder="e.g., Intro to Programming">
-                </div>
-                <div class="mb-3">
-                    <label for="courseCode" class="form-label">Course Code</label>
-                    <input type="text" class="form-control" id="courseCode" placeholder="e.g., CS101">
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">Create Course</button>
-                    <button type="button" class="btn btn-secondary" id="generateJoinCode">Generate Join Code</button>
-                </div>
-            </form> -->
 
     <!-- Generated Join Code Placeholder -->
     <div id="joinCodeDisplay" class="alert alert-info d-none" role="alert">
@@ -102,29 +78,6 @@
         </select>
     </div>
 
-    <!-- Students Placeholder (could be checkboxes later)
-    <div class="mb-3">
-        <label class="form-label">Select Students for Team</label>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="Alice" id="student1">
-            <label class="form-check-label" for="student1">Alice</label>
-        </div>
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="Bob" id="student2">
-            <label class="form-check-label" for="student2">Bob</label>
-        </div>
-        <!- You can generate these from JS later ->
-    </div> -->
-
-    <!-- Team Name Input -->
-    <!-- <div class="mb-3">
-        <label for="teamName" class="form-label">Team Name</label>
-        <input type="text" class="form-control" id="teamName" placeholder="e.g., Team Alpha">
-    </div> -->
-
-    <!-- Create Team Button -->
-    <!-- <button class="btn btn-primary mb-4" id="createTeamBtn">Create Team</button> -->
-
     <!-- Teams List -->
     <h5>Existing Teams</h5>
     <ul class="list-group" id="teamList">
@@ -139,12 +92,7 @@
     
 <!-- Reviews Section -->
 <div class="tab-pane fade" id="reviews" role="tabpanel">
-    <h4>Manage Reviews</h4>
-    <!-- Review Title -->
-    <!-- <div class="mb-3">
-        <label for="reviewTitle" class="form-label">Review Title</label>
-        <input type="text" class="form-control" id="reviewTitle" placeholder="e.g., Teamwork Assessment">
-    </div> -->
+    <h4>See Reviews</h4>
 
     <!-- Course Selection -->
     <div class="mb-3">
@@ -164,38 +112,6 @@
             <!-- More courses can be dynamically populated -->
     </input>
     </div>
-
-    <!-- CRUD for questions (Likert, MCQ, Short Answer)
-    <div class="mb-3">
-        <label for="questionType" class="form-label">Question Type</label>
-        <select class="form-select" id="questionType">
-            <option value="" selected disabled>Select question type</option>
-            <option value="short-answer">Short Answer</option>
-            <option value="essay">Essay</option>
-            <option value="likert">Likert Scale</option>
-            <option value="multiple-choice">Multiple Choice (Single Select)</option>
-            <option value="multi-select">Multiple Choice (Multi Select)</option>
-        </select>
-    </div>
-    <!- Question Text ->
-    <div class="mb-3">
-        <label for="questionText" class="form-label">Question</label>
-        <input type="text" class="form-control" id="questionText" placeholder="Enter your question here">
-    </div>
-
-    <!- Dynamic Options (only for MCQ / Likert) ->
-    <div id="questionOptionsContainer" class="mb-3" style="display: none;">
-        <!- Options will be dynamically inserted here ->
-    </div>
-
-    <!- Add Question Button ->
-    <button class="btn btn-primary mb-4" id="addQuestionBtn">Add Question</button>
-
-    <!- Preview List ->
-    <h5>Questions in This Review</h5>
-    <ul class="list-group" id="reviewQuestionList">
-        <!- Created questions will appear here ->
-    </ul>
 
     <button class="btn btn-success" id="saveReviewBtn">Save Review</button> -->
     <ul class="list-group" id="savedReviewsList">
