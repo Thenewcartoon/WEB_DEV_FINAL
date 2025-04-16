@@ -1,28 +1,28 @@
 <div id="instructorPage" class="container mt-5" style="display: none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Instructor Dashboard</h2>
-        <button id="btnLogout" class="btn btn-outline-secondary">Logout</button>
+        <button id="btnLogout" class="btn btn-outline-secondary" aria-label="Logout and return to home screen">Logout</button>
     </div>
 
     <!-- Navigation Tabs -->
     <ul class="nav nav-tabs" id="instructorTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
+            <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-label="Courses tab">Courses</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">Teams</button>
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab" aria-label="Teams tab">Teams</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-label="Reviews tab">Reviews</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
+            <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab" aria-label="schedule reviews tab">Schedule</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
+            <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab" aria-label="Review Results tab">Review Results</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
+            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab" aria-label="Reports tab">Reports</button>
         </li>
     </ul>
 
@@ -72,8 +72,8 @@
             <td>EX123</td>
             <td>ABCDEF</td>
             <td>
-                <button class="btn btn-sm btn-outline-info">View Students</button>
-                <button class="btn btn-sm btn-outline-danger">Delete</button>
+                <button class="btn btn-sm btn-outline-info" aria-label="View students in this course">View Students</button>
+                <button class="btn btn-sm btn-outline-danger" aria-label="Delete Course">Delete</button>
             </td>
         </tr>
     </tbody>
@@ -118,7 +118,7 @@
 </div>
 
 <!-- Create Team Button -->
-<button class="btn btn-primary mb-4" id="createTeamBtn">Create Team</button>
+<button class="btn btn-primary mb-4" id="createTeamBtn" aria-label="Create team">Create Team</button>
 
 <!-- Teams List -->
 <h5>Existing Teams</h5>
@@ -138,7 +138,7 @@
             <!-- Review Title -->
             <div class="mb-3">
                 <label for="reviewTitle" class="form-label">Review Title</label>
-                <input type="text" class="form-control" id="reviewTitle" placeholder="e.g., Teamwork Assessment">
+                <input type="text" class="form-control" id="reviewTitle" placeholder="e.g., Teamwork Assessment" aria-label="Title of the review goes here">
             </div>
 
             <!-- Course Selection -->
@@ -181,7 +181,7 @@
                 <!-- Created questions will appear here -->
             </ul>
 
-            <button class="btn btn-success" id="saveReviewBtn">Save Review</button>
+            <button class="btn btn-success" id="saveReviewBtn" aria-label="Save the current review">Save Review</button>
             <ul class="list-group" id="savedReviewsList">
                 <!-- Reviews will appear here -->
             </ul>
