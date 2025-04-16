@@ -423,6 +423,25 @@ function initalizeInstructorPage() {
     
         let currentJoinCode = ''; // Store latest generated join code (optional)
     
+        
+        //click event for the logout button on the instructor page
+        const logoutBtn = document.getElementById('btnLogout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                const instructorPage = document.getElementById('instructorPage');
+                if (instructorPage) instructorPage.remove();
+
+                document.body.className = 'bg-dark d-flex align-items-center justify-content-center min-vh-100';
+                const selectDiv = document.getElementById('divSelect');
+                if (selectDiv) selectDiv.style.display = 'block';
+
+        // Optionally clear any stored user info
+        // localStorage.removeItem('currentUser');
+    });
+}
+        
+        
+        
         //--------------------------------------------------------------------------------------------------
         //*******************************************Reports Tab**************************************** */
         //click event for generate reports button. Using a simulation with the 
