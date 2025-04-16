@@ -4,22 +4,6 @@ const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
 let users = []
 //end global variables
 
-// Reset Password button event listener. all validation and click events for Reset Password page must be handled inside this event
-// document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
-//     fetch("components/resetPassword.html") //makes http request to get the content of the login.html file from the components directory
-//     .then(response => response.text())  //takes response from fetch request and extracts its text content
-//     .then(html => { //takes the html text and runs code in this callback function
-
-//         // Back to selection screen button
-//         document.querySelector('#btnSwapLogin').addEventListener('click', function(){
-//             document.querySelector('#frmLogin').style.display = 'none';
-//             document.querySelector('#divSelect').style.display = 'block';
-//         });
-//     })
-//     .catch(error => console.error("Error fetching Login form:", error));
-// })
-
-
 // Login button event listener. all validation and click events for Login page must be handled inside this event
 document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
     fetch("components/login.html") //makes http request to get the content of the login.html file from the components directory

@@ -4,8 +4,8 @@
 // o Review score
 // o Review public feedback from peers
 // o Reports
-//      Combined feedback
-//      Overall scores 
+//      see Combined feedback
+//      see Overall scores 
 
 
 //global variables
