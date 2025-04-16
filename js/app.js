@@ -116,6 +116,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     .then(html => {
                         document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                         document.getElementById("studentPage").style.display = "block"; //displays student page
+                        initializeStudentPage();
                 })
                 }
             })
