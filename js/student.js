@@ -184,8 +184,8 @@ function displaySavedReviews() {
         viewBtn.className = 'btn btn-outline-secondary';
         viewBtn.textContent = 'View';
         viewBtn.addEventListener('click', () => {
-            const modalBody = document.getElementById('fullReviewModalBody');
-            //construct modal content: title, course, and all questions
+            const modelBody = document.getElementById('fullReviewModelBody');
+            //construct model content: title, course, and all questions
             let html = `
                 <p><strong>Title:</strong> ${review.title}</p>
                 <p><strong>Course:</strong> ${review.courseCode}</p>
@@ -203,10 +203,10 @@ function displaySavedReviews() {
                 }
             });
 
-            modalBody.innerHTML = html;
-            //show the modal
-            const modal = new bootstrap.Modal(document.getElementById('fullReviewModal'));
-            modal.show();
+            modelBody.innerHTML = html;
+            //show the model
+            const model = new bootstrap.Model(document.getElementById('fullReviewModel'));
+            model.show();
         });
         //adds the three buttons to the btnGroup container
         btnGroup.appendChild(viewBtn)
@@ -666,8 +666,6 @@ document.addEventListener("DOMContentLoaded", () => {
             createCourseForm.reset();
             joinCodeDisplay.classList.add('d-none');
             currentJoinCode = '';
-
-            
             
             // Add course row to table
             const newRow = document.createElement('tr');
@@ -682,31 +680,30 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
             courseTableBody.appendChild(newRow);
 
-            // Add delete button functionality to this row
-            const deleteButton = newRow.querySelector('.btn-outline-danger');
-            deleteButton.addEventListener('click', () => {
-                // Remove row from the table
-                newRow.remove();
+            // // Add delete button functionality to this row
+            // const deleteButton = newRow.querySelector('.btn-outline-danger');
+            // deleteButton.addEventListener('click', () => {
+            //     // Remove row from the table
+            //     newRow.remove();
 
-                // Remove from the courses array
-                const indexToRemove = courses.findIndex(c => c.code === courseCode);
-                if (indexToRemove !== -1) {
-                    courses.splice(indexToRemove, 1);
-                }
+            //     // Remove from the courses array
+            //     const indexToRemove = courses.findIndex(c => c.code === courseCode);
+            //     if (indexToRemove !== -1) {
+            //         courses.splice(indexToRemove, 1);
+            //     }
 
-                // Remove from the Teams tab dropdown
-                const teamCourseSelect = document.getElementById('teamCourseSelect');
-                if (teamCourseSelect) {
-                    const options = teamCourseSelect.options;
-                    for (let i = 0; i < options.length; i++) {
-                        if (options[i].value === courseCode) {
-                            teamCourseSelect.remove(i);
-                            break;
-                        }
-                    }
-                }
-            });
-
+            //     // Remove from the Teams tab dropdown
+            //     const teamCourseSelect = document.getElementById('teamCourseSelect');
+            //     if (teamCourseSelect) {
+            //         const options = teamCourseSelect.options;
+            //         for (let i = 0; i < options.length; i++) {
+            //             if (options[i].value === courseCode) {
+            //                 teamCourseSelect.remove(i);
+            //                 break;
+            //             }
+            //         }
+            //     }
+            // });
 
             // Reset form & join code
             createCourseForm.reset();

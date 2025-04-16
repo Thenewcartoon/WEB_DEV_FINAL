@@ -175,8 +175,8 @@ function displaySavedReviews() {
         viewBtn.className = 'btn btn-outline-secondary';
         viewBtn.textContent = 'View';
         viewBtn.addEventListener('click', () => {
-            const modalBody = document.getElementById('fullReviewModalBody');
-            //construct modal content: title, course, and all questions
+            const modelBody = document.getElementById('fullReviewModelBody');
+            //construct model content: title, course, and all questions
             let html = `
                 <p><strong>Title:</strong> ${review.title}</p>
                 <p><strong>Course:</strong> ${review.courseCode}</p>
@@ -194,10 +194,10 @@ function displaySavedReviews() {
                 }
             });
 
-            modalBody.innerHTML = html;
-            //show the modal
-            const modal = new bootstrap.Modal(document.getElementById('fullReviewModal'));
-            modal.show();
+            modelBody.innerHTML = html;
+            //show the model
+            const model = new bootstrap.Model(document.getElementById('fullReviewModel'));
+            model.show();
         });
         //adds the three buttons to the btnGroup container
         btnGroup.appendChild(viewBtn)
