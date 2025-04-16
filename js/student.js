@@ -322,13 +322,13 @@ function displayAssignedReviews() {
 
 
 // Handle "Generate Join Code" button click
-<<<<<<< HEAD
+//<<<<<<< HEAD
 function initalizeStudentPage(){
     const joinCodeDisplay = document.getElementById('joinCodeDisplay');
-=======
+//=======
 function initalizeStudentPage(){
 const joinCodeDisplay = document.getElementById('joinCodeDisplay');
->>>>>>> b44b3e5a8e0e72f66b9f06b4788986e1df58f77d
+//>>>>>>> b44b3e5a8e0e72f66b9f06b4788986e1df58f77d
     const joinCodeText = document.getElementById('joinCodeText');
     const generateJoinCodeBtn = document.getElementById('generateJoinCode');
     const createCourseForm = document.getElementById('createCourseForm');
@@ -718,4 +718,4 @@ const joinCodeDisplay = document.getElementById('joinCodeDisplay');
     }
 
     //***************************************************End of Courses Tab********************************************* */
-}};
+}}; }

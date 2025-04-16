@@ -110,12 +110,15 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                         document.getElementById("instructorPage").style.display = "block"; //displays instructor page
                         initalizeInstructorPage()
                 })
-                }else if(selectedRole === 'student') {
+                }else if(role === 'student') {
                     fetch("components/student.html")
                     .then(res => res.text())
                     .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
                         document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                         document.getElementById("studentPage").style.display = "block"; //displays student page
+
                 })
                 }
             })
