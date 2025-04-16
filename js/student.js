@@ -322,8 +322,8 @@ function displayAssignedReviews() {
 
 
 // Handle "Generate Join Code" button click
-document.addEventListener("DOMContentLoaded", () => {
-    const joinCodeDisplay = document.getElementById('joinCodeDisplay');
+function initalizeStudentPage(){
+const joinCodeDisplay = document.getElementById('joinCodeDisplay');
     const joinCodeText = document.getElementById('joinCodeText');
     const generateJoinCodeBtn = document.getElementById('generateJoinCode');
     const createCourseForm = document.getElementById('createCourseForm');
@@ -713,5 +713,5 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     //***************************************************End of Courses Tab********************************************* */
-}});
+}}
 
