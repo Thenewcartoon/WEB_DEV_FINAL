@@ -116,14 +116,14 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
 
                 //redirect to appropriate role page
                 if (role === 'instructor') {
-                    fetch("components/instructor.html")
+                    fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
                     .then(res => res.text())
                     .then(html => {
                         document.body.className = ''; // remove bg-dark and flex centering
                         document.body.classList.add('bg-light'); // optional: add a light background
 
                         document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-                        document.getElementById("instructorPage").style.display = "block";
+                        document.getElementById("instructorPage").style.display = "block"; //displays instructor page
                         initalizeInstructorPage()
                 })
                 }else if(selectedRole === 'student') {
@@ -131,7 +131,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     .then(res => res.text())
                     .then(html => {
                         document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-                        document.getElementById("studentPage").style.display = "block";
+                        document.getElementById("studentPage").style.display = "block"; //displays student page
                 })
                 }
             })
