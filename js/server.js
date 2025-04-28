@@ -5,7 +5,7 @@ const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
 const intSalt = 10;
 
-const dbSource = "../Peer_Assessment.db" // Should go back to the root directory to access the database file, may need to update in future.
+const dbSource = "Peer_Assessment.db" // Should go back to the root directory to access the database file, may need to update in future.
 const HTTP_PORT = 8000
 const db = new sqlite3.Database(dbSource)
 

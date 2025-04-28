@@ -133,63 +133,6 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                 icon: 'error'
                 })
             }
-
-
-
-
-
-
-
-
-            // const users = JSON.parse(localStorage.getItem('users')) || []
-            // //find matching user
-            // const matchedUser = users.find(u => 
-            //     u.email === strEmail &&
-            //     u.password === strPassword &&
-            //     u.role === role
-            // )
-            // if (!matchedUser) {
-            //     Swal.fire({
-            //         title: 'Login Failed',
-            //         text: 'Invalid credentials or role selection.',
-            //         icon: 'error'
-            //     });
-            //     return;
-            // }
-
-            //login success
-            // Swal.fire({
-            //     title: 'Login Successful!',
-            //     text: `Welcome, ${matchedUser.firstName}`,
-            //     icon: 'success'
-            // }).then(() => {
-            //     // Hide login form
-            //     document.querySelector('#frmLogin').remove()
-
-            //     //redirect to appropriate role page
-            //     if (role === 'instructor') {
-            //         fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
-            //         .then(res => res.text())
-            //         .then(html => {
-            //             document.body.className = ''; // remove bg-dark and flex centering
-            //             document.body.classList.add('bg-light'); // optional: add a light background
-
-            //             document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-            //             document.getElementById("instructorPage").style.display = "block"; //displays instructor page
-            //             initalizeInstructorPage()
-            //     })
-            //     }else if(role === 'student') {
-            //         fetch("components/student.html")
-            //         .then(res => res.text())
-            //         .then(html => {
-            //             document.body.className = ''; // remove bg-dark and flex centering
-            //             document.body.classList.add('bg-light'); // optional: add a light background
-            //             document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-            //             document.getElementById("studentPage").style.display = "block"; //displays student page
-
-            //     })
-            //     }
-            // })
         });
 
         // Back to landing screen button
