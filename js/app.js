@@ -403,7 +403,7 @@ async function loginUser(username, password) {
     
     if (response.ok) {
         //Just simple debugging tips for now.
-         console.log("Login successful:", data.message);
+        console.log("Login successful:", data.message);
     } else {
         console.error("Login failed:", data.error);
     }
