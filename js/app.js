@@ -272,41 +272,47 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
                     icon: "error"
                 });
             } else {
-                // 🔐 Step 1: Load existing users from localStorage (or use empty array)
-                let users = JSON.parse(localStorage.getItem('users')) || [];
-
-                    // 🔍 Step 2: Prevent duplicate registration by email
-                const existing = users.find(u => u.email === strEmail);
-                if (existing) {
+                // ✅ New code: Send user info to the server
+                fetch('http://localhost:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: strFirstName,
+                        lastName: strLastName,
+                        email: strEmail,
+                        password: strPassword,
+                        role: role,
+                        contactType: (role === 'student') ? contactType : null,
+                        contactInfo: (role === 'student') ? contactInfo : null
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        Swal.fire({
+                            title: "Registered!",
+                            text: "You can now log in.",
+                            icon: "success"
+                        }).then(() => {
+                            document.querySelector('#btnSwapLogin').click();  // Go back to login screen
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.error || "An error occurred.",
+                            icon: "error"
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration error:', error);
                     Swal.fire({
-                        title: "Duplicate Account",
-                        text: "An account with this email already exists.",
+                        title: "Error",
+                        text: "Could not complete registration.",
                         icon: "error"
                     });
-                    return;
-                }
-
-    // 💾 Step 3: Add user to array
-                users.push({
-                    firstName: strFirstName,
-                    lastName: strLastName,
-                    email: strEmail,
-                    password: strPassword,
-                    role: role,
-                    contact: (role === 'student') ? { type: contactType, info: contactInfo } : null
-                });
-
-                // 💽 Step 4: Save updated array to localStorage
-                localStorage.setItem('users', JSON.stringify(users));
-
-                // 🎉 Step 5: Show confirmation
-                Swal.fire({
-                    title: "Registered!",
-                    text: "You can now log in.",
-                    icon: "success"
-                }).then(() => {
-        // Optional: go back to homepage
-                    document.querySelector('#btnSwapLogin').click();
                 });
             }
         });
