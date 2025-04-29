@@ -866,66 +866,72 @@ function initalizeInstructorPage() {
         }
     
         // Handle course creation form submission
-        if (createCourseForm) {
-            createCourseForm.addEventListener('submit', async function (e) {
-                e.preventDefault();
+        const createCourseBtn = document.getElementById('createCourseBtn');
+
+if (createCourseBtn) {
+    createCourseBtn.addEventListener('click', async function (e) {
+        e.preventDefault();  // Optional now but still good practice
         
-                const courseName = document.getElementById('courseName').value.trim();
-                const courseCode = document.getElementById('courseCode').value.trim();
-                const courseSection = document.getElementById('courseSection').value.trim(); // Add this if needed
-        
-                if (!courseName || !courseCode) {
-                    alert("Please enter both course name and course code.");
-                    return;
-                }
-        
-                const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
-        
-                try {
-                    const response = await fetch('http://localhost:8000/createCourse', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            courseName,
-                            courseCode,
-                            courseSection,
-                            joinCode: joinCodeForThisCourse
-                        })
-                    });
-        
-                    const data = await response.json();
-        
-                    if (!response.ok) {
-                        Swal.fire({
-                            title: 'Error',
-                            text: data.error || 'Failed to create course.',
-                            icon: 'error'
-                        });
-                        return;
-                    }
-        
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Course created successfully.',
-                        icon: 'success'
-                    }).then(() => {
-                        createCourseForm.reset();
-                        joinCodeDisplay.classList.add('d-none');
-                        currentJoinCode = '';
-                        fetchAndDisplayCourses(); // ✅ refresh table after success
-                    });
-        
-                } catch (error) {
-                    console.error('Error during course creation:', error);
-                    Swal.fire({
-                        title: 'Error',
-                        text: 'An unexpected error occurred.',
-                        icon: 'error'
-                    });
-                }
+        const courseName = document.getElementById('courseName').value.trim();
+        const courseCode = document.getElementById('courseCode').value.trim();
+        const courseSection = document.getElementById('courseSection').value.trim();
+
+        if (!courseName || !courseCode || !courseSection) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
+
+        try {
+            const response = await fetch('http://localhost:8000/createCourse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    courseName,
+                    courseCode,
+                    courseSection,
+                    joinCode: joinCodeForThisCourse
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.error || 'Failed to create course.',
+                    icon: 'error'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Course created successfully.',
+                icon: 'success'
+            }).then(() => {
+                // Clear fields manually now (no form.reset())
+                document.getElementById('courseName').value = '';
+                document.getElementById('courseCode').value = '';
+                document.getElementById('courseSection').value = '';
+                joinCodeDisplay.classList.add('d-none');
+                currentJoinCode = '';
+                fetchAndDisplayCourses();
+            });
+
+        } catch (error) {
+            console.error('Error during course creation:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'An unexpected error occurred.',
+                icon: 'error'
             });
         }
+    });
+}
+
         
         populateReportCourseDropdown()
     
