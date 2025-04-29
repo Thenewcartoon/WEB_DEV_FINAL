@@ -393,6 +393,84 @@ function populateReportCourseDropdown() {
         select.appendChild(opt);
     });
 }
+
+
+
+async function fetchAndDisplayCourses() {
+    try {
+        const response = await fetch('http://localhost:8000/courses', {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch courses');
+        }
+
+        const data = await response.json();
+        const coursesFromDB = data.courses;
+
+        courseTableBody.innerHTML = '';
+
+        coursesFromDB.forEach(course => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${course.CourseName}</td>
+                <td>${course.CourseNumber}</td> <!-- ✅ CourseNumber fixed -->
+                <td>${course.CourseSection}</td>
+                <td>${course.JoinCode}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" type="button">View Students</button>
+                    <button class="btn btn-sm btn-outline-danger" type="button">Delete</button>
+                </td>
+            `;
+
+            // --- Set up the Delete button ---
+            const deleteButton = newRow.querySelector('.btn-outline-danger');
+            deleteButton.addEventListener('click', async () => {
+                const confirmed = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: `Delete course ${course.CourseName}?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it!',
+                    cancelButtonText: 'Cancel'
+                });
+
+                if (confirmed.isConfirmed) {
+                    try {
+                        const deleteResponse = await fetch(`http://localhost:8000/deleteCourse/${encodeURIComponent(course.CourseNumber)}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+
+                        if (!deleteResponse.ok) {
+                            const deleteData = await deleteResponse.json();
+                            Swal.fire('Error', deleteData.error || 'Failed to delete course.', 'error');
+                            return;
+                        }
+
+                        Swal.fire('Deleted!', 'Course was deleted.', 'success');
+                        
+                        // ✅ Remove from screen after deletion
+                        newRow.remove();
+
+                    } catch (err) {
+                        console.error('Error deleting course:', err);
+                        Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                    }
+                }
+            });
+
+            courseTableBody.appendChild(newRow); // ✅ Append the row after setting up delete
+        });
+
+    } catch (error) {
+        console.error('Error fetching courses:', error);
+    }
+}
+
+
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -422,6 +500,8 @@ function initalizeInstructorPage() {
         const teamList = document.getElementById('teamList');
     
         let currentJoinCode = ''; // Store latest generated join code (optional)
+
+        fetchAndDisplayCourses()
     
         
         //click event for the logout button on the instructor page
@@ -862,6 +942,7 @@ function initalizeInstructorPage() {
                                 break;
                             }
                         }
+<<<<<<< Updated upstream
                     }
                 });
     
@@ -870,6 +951,30 @@ function initalizeInstructorPage() {
                 createCourseForm.reset();
                 joinCodeDisplay.classList.add('d-none');
                 currentJoinCode = '';
+=======
+                    });
+        
+                    // ✅ After everything done successfully, show SweetAlert and reset form inside .then()
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Course created successfully.',
+                        icon: 'success'
+                    }).then(() => {
+                        createCourseForm.reset();
+                        joinCodeDisplay.classList.add('d-none');
+                        currentJoinCode = '';
+                        fetchAndDisplayCourses()
+                    });
+            
+                } catch (error) {
+                    console.error('Error during course creation:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An unexpected error occurred.',
+                        icon: 'error'
+                    });
+                }
+>>>>>>> Stashed changes
             });
         }
         populateReportCourseDropdown()
