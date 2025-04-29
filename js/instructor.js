@@ -1,3 +1,5 @@
+ 
+
 // instructor.js
 
 //global variables
@@ -439,7 +441,7 @@ async function fetchAndDisplayCourses() {
 
                 if (confirmed.isConfirmed) {
                     try {
-                        const deleteResponse = await fetch(`http://localhost:8000/deleteCourse/${encodeURIComponent(course.CourseNumber)}`, {
+                        const deleteResponse = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}`, {
                             method: 'DELETE',
                             credentials: 'include'
                         });
@@ -514,11 +516,12 @@ function initalizeInstructorPage() {
                 document.body.className = 'bg-dark d-flex align-items-center justify-content-center min-vh-100';
                 const selectDiv = document.getElementById('divSelect');
                 if (selectDiv) selectDiv.style.display = 'block';
-
+            
         // Optionally clear any stored user info
         // localStorage.removeItem('currentUser');
     });
 }
+
         
         
         
@@ -864,97 +867,44 @@ function initalizeInstructorPage() {
     
         // Handle course creation form submission
         if (createCourseForm) {
-            createCourseForm.addEventListener('submit', function (e) {
-                e.preventDefault(); // Prevent form from reloading the page
-    
+            createCourseForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+        
                 const courseName = document.getElementById('courseName').value.trim();
                 const courseCode = document.getElementById('courseCode').value.trim();
-    
+                const courseSection = document.getElementById('courseSection').value.trim(); // Add this if needed
+        
                 if (!courseName || !courseCode) {
                     alert("Please enter both course name and course code.");
                     return;
                 }
-    
-                //Step 1: Save the join code locally before it's reset
+        
                 const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
-    
-                // Store course in global array
-                courses.push({
-                    name: courseName,
-                    code: courseCode,
-                    joinCode: joinCodeForThisCourse,
-                    students: [] // we'll use this later
-                });
-                
-                //update review results tab drop down
-                populateReviewResultsDropdowns()
-                populateReportCourseDropdown() //populates the select course options in the reports tab
-                // Add course to Teams tab dropdown
-                const teamCourseSelect = document.getElementById('teamCourseSelect');
-                if (teamCourseSelect) {
-                    const option = document.createElement('option');
-                    option.value = courseCode;
-                    option.textContent = `${courseCode} - ${courseName}`;
-                    teamCourseSelect.appendChild(option);
-                }
-    
-                populateScheduleDropdowns() //refreshes the Schedule tab dropdowns
-                // add course to review tab dropdown
-                populateReviewCourseDropdown()
-                createCourseForm.reset();
-                joinCodeDisplay.classList.add('d-none');
-                currentJoinCode = '';
-    
-                
-                
-                // Add course row to table
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>${courseName}</td>
-                    <td>${courseCode}</td>
-                    <td>${joinCodeForThisCourse}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-info">View Students</button>
-                        <button class="btn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                `;
-                courseTableBody.appendChild(newRow);
-    
-                // Add delete button functionality to this row
-                const deleteButton = newRow.querySelector('.btn-outline-danger');
-                deleteButton.addEventListener('click', () => {
-                    // Remove row from the table
-                    newRow.remove();
-    
-                    // Remove from the courses array
-                    const indexToRemove = courses.findIndex(c => c.code === courseCode);
-                    if (indexToRemove !== -1) {
-                        courses.splice(indexToRemove, 1);
-                    }
-    
-                    // Remove from the Teams tab dropdown
-                    const teamCourseSelect = document.getElementById('teamCourseSelect');
-                    if (teamCourseSelect) {
-                        const options = teamCourseSelect.options;
-                        for (let i = 0; i < options.length; i++) {
-                            if (options[i].value === courseCode) {
-                                teamCourseSelect.remove(i);
-                                break;
-                            }
-                        }
-<<<<<<< Updated upstream
-                    }
-                });
-    
-    
-                // Reset form & join code
-                createCourseForm.reset();
-                joinCodeDisplay.classList.add('d-none');
-                currentJoinCode = '';
-=======
+        
+                try {
+                    const response = await fetch('http://localhost:8000/createCourse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            courseName,
+                            courseCode,
+                            courseSection,
+                            joinCode: joinCodeForThisCourse
+                        })
                     });
         
-                    // ✅ After everything done successfully, show SweetAlert and reset form inside .then()
+                    const data = await response.json();
+        
+                    if (!response.ok) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.error || 'Failed to create course.',
+                            icon: 'error'
+                        });
+                        return;
+                    }
+        
                     Swal.fire({
                         title: 'Success!',
                         text: 'Course created successfully.',
@@ -963,9 +913,9 @@ function initalizeInstructorPage() {
                         createCourseForm.reset();
                         joinCodeDisplay.classList.add('d-none');
                         currentJoinCode = '';
-                        fetchAndDisplayCourses()
+                        fetchAndDisplayCourses(); // ✅ refresh table after success
                     });
-            
+        
                 } catch (error) {
                     console.error('Error during course creation:', error);
                     Swal.fire({
@@ -974,13 +924,13 @@ function initalizeInstructorPage() {
                         icon: 'error'
                     });
                 }
->>>>>>> Stashed changes
             });
         }
+        
         populateReportCourseDropdown()
     
-        //***************************************************End of Courses Tab********************************************* */
-    }};
+     //***************************************************End of Courses Tab********************************************* */
+}};
 
 //***********************************END OF FUNCTIONS************************************************************************ */
 

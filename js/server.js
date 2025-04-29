@@ -1,5 +1,10 @@
+ 
 const express = require('express')
 const cors = require('cors')
+const corsOptions = {
+    origin: 'http://127.0.0.1:5500',  // ✅ frontend origin
+    credentials: true                 // ✅ allow cookies
+};
 const {v4:uuidv4} = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
@@ -10,17 +15,8 @@ const HTTP_PORT = 8000
 const db = new sqlite3.Database(dbSource)
 
 var app = express()
-<<<<<<< Updated upstream
-app.use(cors())
-=======
-app.use(cors({
-    origin: 'http://127.0.0.1:5500',   // allow ONLY your frontend
-    credentials: true                  // allow cookies/session credentials
-}));
->>>>>>> Stashed changes
+app.use(cors(corsOptions))
 app.use(express.json())
-
-
 
 //Use a post here since we are accepting user input as the login and password to validate, but do not update anything in the database.
 app.post('/validateUserLogin', (req, res, next) =>{
@@ -144,8 +140,6 @@ app.post('/register', async (req, res) => {
 });
 
 
-<<<<<<< Updated upstream
-=======
 // Create a new course
 app.post('/createCourse', (req, res) => {
     const { courseName, courseCode, courseSection, joinCode } = req.body;
@@ -186,18 +180,18 @@ app.get('/courses', (req, res) => {
     const query = `
         SELECT CourseNumber, CourseName, CourseSection, JoinCode
         FROM tblCourses
-        
     `;
 
     db.all(query, [], (err, rows) => {
         if (err) {
-            console.error("Error fetching courses:", err);
+            console.error("Error fetching courses:", err); // <--- check your backend terminal for this
             return res.status(500).json({ error: "Database error while fetching courses." });
         }
-        console.log("Fetched courses:", rows)
+
         return res.status(200).json({ courses: rows });
     });
 });
+
 
 // Get students in a specific course
 app.get('/courses/:courseCode/students', (req, res) => {
@@ -222,13 +216,15 @@ app.get('/courses/:courseCode/students', (req, res) => {
 
 
 // Delete a course
-// Delete a course by CourseNumber
-app.delete('/deleteCourse/:courseNumber', (req, res) => {
-    const courseNumber = req.params.courseNumber; // get from URL
+app.delete('/courses/:courseCode', (req, res) => {
+    const { courseCode } = req.params;
 
-    const deleteQuery = `DELETE FROM tblCourses WHERE CourseNumber = ?`; // completely remove
+    const query = `
+        DELETE FROM tblCourses
+        WHERE CourseNumber = ?
+    `;
 
-    db.run(deleteQuery, [courseNumber], function(err) {
+    db.run(query, [courseCode], function(err) {
         if (err) {
             console.error("Error deleting course:", err);
             return res.status(500).json({ error: "Database error while deleting course." });
@@ -243,7 +239,6 @@ app.delete('/deleteCourse/:courseNumber', (req, res) => {
 });
 
 
->>>>>>> Stashed changes
 
 
 app.get('/',(req,res,next) => {
