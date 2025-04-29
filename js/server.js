@@ -1,5 +1,9 @@
 const express = require('express')
 const cors = require('cors')
+const corsOptions = {
+    origin: 'http://127.0.0.1:5500',  // ✅ frontend origin
+    credentials: true                 // ✅ allow cookies
+};
 const {v4:uuidv4} = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
@@ -10,7 +14,7 @@ const HTTP_PORT = 8000
 const db = new sqlite3.Database(dbSource)
 
 var app = express()
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(express.json())
 
 //Use a post here since we are accepting user input as the login and password to validate, but do not update anything in the database.
@@ -132,6 +136,102 @@ app.post('/register', async (req, res) => {
         console.error("Unexpected error during registration:", error);
         return res.status(500).json({ error: "Internal server error." });
     }
+});
+
+
+// Create a new course
+app.post('/createCourse', (req, res) => {
+    const { courseName, courseCode, courseSection, joinCode } = req.body;
+
+    if (!courseName || !courseCode || !courseSection || !joinCode) {
+        return res.status(400).json({ error: "Missing required fields to create course." });
+    }
+
+    const checkQuery = 'SELECT * FROM tblCourses WHERE CourseNumber = ?'; //CourseNumber is the same thing as CourseCode
+    db.get(checkQuery, [courseCode], (err, row) => {
+        if (err) {
+            console.error("Error checking for existing course:", err);
+            return res.status(500).json({ error: "Database error while checking for course." });
+        }
+
+        if (row) {
+            return res.status(409).json({ error: "Course number already exists." });
+        }
+
+        const insertQuery = `
+            INSERT INTO tblCourses (CourseNumber, CourseName, CourseSection, JoinCode)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        db.run(insertQuery, [courseCode, courseName, courseSection, joinCode], function (err) {
+            if (err) {
+                console.error("Error inserting course:", err);
+                return res.status(500).json({ error: "Database error during course insertion." });
+            }
+            return res.status(201).json({ message: "Course created successfully." });
+        });
+    });
+});
+
+
+// Get all active courses
+app.get('/courses', (req, res) => {
+    const query = `
+        SELECT CourseCode, CourseName, CourseSection, JoinCode
+        FROM tblCourses
+        WHERE Status = 'Active'
+    `;
+
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching courses:", err);
+            return res.status(500).json({ error: "Database error while fetching courses." });
+        }
+
+        return res.status(200).json({ courses: rows });
+    });
+});
+
+// Get students in a specific course
+app.get('/courses/:courseCode/students', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        SELECT u.FirstName, u.LastName, u.Email
+        FROM tblEnrollments e
+        JOIN tblUsers u ON e.StudentEmail = u.Email
+        WHERE e.CourseCode = ?
+    `;
+
+    db.all(query, [courseCode], (err, rows) => {
+        if (err) {
+            console.error("Error fetching students:", err);
+            return res.status(500).json({ error: "Database error while fetching students." });
+        }
+
+        return res.status(200).json({ students: rows });
+    });
+});
+
+
+// Delete a course
+app.delete('/courses/:courseCode', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        UPDATE tblCourses
+        SET Status = 'Deleted'
+        WHERE CourseCode = ?
+    `;
+
+    db.run(query, [courseCode], function(err) {
+        if (err) {
+            console.error("Error deleting course:", err);
+            return res.status(500).json({ error: "Database error while deleting course." });
+        }
+
+        return res.status(200).json({ message: "Course deleted successfully." });
+    });
 });
 
 

@@ -1,7 +1,7 @@
 <div id="instructorPage" class="container mt-5" style="display: none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Instructor Dashboard</h2>
-        <button id="btnLogout" class="btn btn-outline-secondary">Logout</button>
+        <button id="btnLogout" class="btn btn-outline-secondary" type="button">Logout</button>
     </div>
 
     <!-- Navigation Tabs -->
@@ -43,6 +43,10 @@
         <label for="courseCode" class="form-label">Course Code</label>
         <input type="text" class="form-control" id="courseCode" placeholder="e.g., CS101">
     </div>
+    <div class="mb-3">
+        <label for="courseSection" class="form-label">Course Section</label>
+        <input type="text" class="form-control" id="courseSection" placeholder="e.g., CS101">
+    </div>
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary">Create Course</button>
         <button type="button" class="btn btn-secondary" id="generateJoinCode">Generate Join Code</button>
@@ -61,6 +65,7 @@
         <tr>
             <th>Course Name</th>
             <th>Course Code</th>
+            <th>Course Section</th>
             <th>Join Code</th>
             <th>Actions</th>
         </tr>
