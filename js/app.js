@@ -92,6 +92,8 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                 userData = await response.json()
                 
                 if(response.ok){
+                    localStorage.setItem('currentUser', JSON.stringify(userData.user));
+
                     Swal.fire({
                         title: 'Login Successful!',
                         text: `Welcome, ${userData.user.FirstName}`,
