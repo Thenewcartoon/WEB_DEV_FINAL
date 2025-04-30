@@ -429,6 +429,31 @@ async function fetchAndDisplayCourses() {
 
             // --- Set up the Delete button ---
             const deleteButton = newRow.querySelector('.btn-outline-danger');
+            const viewButton = newRow.querySelector('.btn-outline-info');
+            viewButton.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}/students`);
+                    const result = await res.json();
+
+                    if (!res.ok) {
+                        Swal.fire("Error", result.error || "Failed to fetch students.", "error");
+                        return;
+                    }
+
+                    const studentList = result.students.map(s => `${s.FirstName} ${s.LastName} (${s.Email})`).join('<br>');
+
+                    Swal.fire({
+                        title: `Students in ${course.CourseNumber}`,
+                        html: studentList || 'No students enrolled yet.',
+                        icon: 'info',
+                        width: '50%'
+                    });
+                } catch (err) {
+                    console.error("Error fetching students:", err);
+                    Swal.fire("Error", "Could not fetch students.", "error");
+                }
+            });
+
             deleteButton.addEventListener('click', async () => {
                 const confirmed = await Swal.fire({
                     title: 'Are you sure?',

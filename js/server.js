@@ -264,14 +264,35 @@ app.get('/courses', (req, res) => {
 
 
 // Get students in a specific course
+// app.get('/courses/:courseCode/students', (req, res) => {
+//     const { courseCode } = req.params;
+
+//     const query = `
+//         SELECT u.FirstName, u.LastName, u.Email
+//         FROM tblEnrollments e
+//         JOIN tblUsers u ON e.StudentEmail = u.Email
+//         WHERE e.CourseNumber = ?
+//     `;
+
+//     db.all(query, [courseCode], (err, rows) => {
+//         if (err) {
+//             console.error("Error fetching students:", err);
+//             return res.status(500).json({ error: "Database error while fetching students." });
+//         }
+
+//         return res.status(200).json({ students: rows });
+//     });
+// });
+
 app.get('/courses/:courseCode/students', (req, res) => {
     const { courseCode } = req.params;
 
     const query = `
         SELECT u.FirstName, u.LastName, u.Email
         FROM tblEnrollments e
-        JOIN tblUsers u ON e.StudentEmail = u.Email
-        WHERE e.CourseCode = ?
+        JOIN tblUsers u ON e.UserID = u.UserID
+        JOIN tblCourses c ON e.CourseID = c.CourseID
+        WHERE c.CourseNumber = ?
     `;
 
     db.all(query, [courseCode], (err, rows) => {
@@ -346,6 +367,7 @@ app.post('/drop-course', (req, res) => {
         });
     });
 });
+
 
 
 
