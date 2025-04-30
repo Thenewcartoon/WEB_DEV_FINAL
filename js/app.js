@@ -123,6 +123,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("studentPage").style.display = "block"; //displays student page
                                 initializeJoinCourseButton()
+                                fetchStudentCourses()
         
                         })
                         }

@@ -1,4 +1,3 @@
- 
 const express = require('express')
 const cors = require('cors')
 const corsOptions = {
@@ -282,6 +281,32 @@ app.get('/courses/:courseCode/students', (req, res) => {
         }
 
         return res.status(200).json({ students: rows });
+    });
+});
+
+
+app.get('/student-courses', (req, res) => {
+    const email = req.query.email;
+
+    if (!email) {
+        return res.status(400).json({ error: "Email is required." });
+    }
+
+    const query = `
+        SELECT c.CourseName, c.CourseNumber, c.JoinCode
+        FROM tblCourses c
+        JOIN tblEnrollments e ON c.CourseID = e.CourseID
+        JOIN tblUsers u ON e.UserID = u.UserID
+        WHERE u.Email = ?
+    `;
+
+    db.all(query, [email], (err, rows) => {
+        if (err) {
+            console.error("Error fetching student courses:", err);
+            return res.status(500).json({ error: "Database error while fetching student courses." });
+        }
+
+        return res.status(200).json({ courses: rows });
     });
 });
 

@@ -1,3 +1,48 @@
+async function fetchStudentCourses() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || !currentUser.Email) {
+        console.error("No logged in user found in localStorage.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/student-courses?email=${encodeURIComponent(currentUser.Email)}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error("Error fetching courses:", result.error);
+            return;
+        }
+
+        const courseTableBody = document.getElementById('courseTableBody');
+        if (!courseTableBody) {
+            console.error("Could not find course table body.");
+            return;
+        }
+
+        courseTableBody.innerHTML = ''; // Clear table
+
+        result.courses.forEach(course => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${course.CourseName}</td>
+                <td>${course.CourseNumber}</td>
+                <td>${course.JoinCode}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-danger">Drop</button>
+                </td>
+            `;
+            courseTableBody.appendChild(row);
+        });
+
+    } catch (err) {
+        console.error("Fetch error:", err);
+    }
+}
+
+
+
+
 function initializeJoinCourseButton() {
     const joinCourseBtn = document.getElementById('joinCourseBtn');
 const joinCodeInput = document.getElementById('joinCodeInput');
@@ -27,7 +72,9 @@ if (joinCourseBtn && joinCodeInput) {
                 return;
             }
     
-            Swal.fire("Success", "You have joined the course!", "success");
+            Swal.fire("Success", "You have joined the course!", "success").then(() => {
+                fetchStudentCourses();  // ⬅ refresh the course list after enrolling
+            });
     
         } catch (err) {
             console.error("Fetch error:", err);
