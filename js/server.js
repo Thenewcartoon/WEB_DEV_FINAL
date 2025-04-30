@@ -1,8 +1,14 @@
+ 
 const express = require('express')
 const cors = require('cors')
+const corsOptions = {
+    origin: 'http://127.0.0.1:5500',  // ✅ frontend origin
+    credentials: true                 // ✅ allow cookies
+};
 const {v4:uuidv4} = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
+const cookieParser = require('cookie-parser')
 const intSalt = 10;
 
 const dbSource = "Peer_Assessment.db" // Should go back to the root directory to access the database file, may need to update in future.
@@ -10,15 +16,16 @@ const HTTP_PORT = 8000
 const db = new sqlite3.Database(dbSource)
 
 var app = express()
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(express.json())
+app.use(cookieParser())
 
 //Use a post here since we are accepting user input as the login and password to validate, but do not update anything in the database.
 app.post('/validateUserLogin', (req, res, next) =>{
     const { username, password } = req.body
     
 
-    const query = 'SELECT * FROM tblUsers WHERE email = ?'
+    const query = 'SELECT * FROM tblUsers WHERE Email = ?'
     db.get(query, [username], (err, row) => {
         if (err) {
             //Interal server error.
@@ -36,10 +43,29 @@ app.post('/validateUserLogin', (req, res, next) =>{
                 return res.status(500).json({ error: "Error in connecting to database."})
             }
             if(userFound){
-                return res.status(200).json({
-                    message: "Login successful",
-                    // For now only returns some data.
-                    user: { UserId: row.UserId, FirstName: row.FirstName, LastName: row.LastName, Email: row.Email }
+                // Create a login session.
+                let strSessionID = uuidv4() // Give it a unique ID.
+                const strCommand = 'INSERT INTO tblSessions (SessionID, UserID, StartDateTime) VALUES (?, ?, ?)'
+                let dateNow = new Date()
+                let strNow = dateNow.toISOString()
+
+                db.run(strCommand, [strSessionID, row.UserID, strNow], function (err) {
+                    if (err){
+                        return res.status(500).json({error: "Error creating session."}) // Should also exit code.
+                    }
+                     //Create a cookie.
+                    res.cookie('sessionID', strSessionID, {
+                    httpOnly: true,
+                    secure: true, 
+                    sameSite: 'Strict',
+                    maxAge: 12 * 60 * 60 * 1000 // Cookie will be removed after 12 hours.
+                    })
+
+                    return res.status(200).json({
+                        message: "Login successful",
+                        // For now only returns some data.
+                        user: { UserID: row.UserID, FirstName: row.FirstName, LastName: row.LastName, Email: row.Email, Role: row.Role}
+                    })
                 })
             }
             else{
@@ -134,6 +160,152 @@ app.post('/register', async (req, res) => {
     }
 });
 
+
+// Create a new course
+app.post('/createCourse', (req, res) => {
+    const { courseName, courseCode, courseSection, joinCode } = req.body;
+
+    if (!courseName || !courseCode || !courseSection || !joinCode) {
+        return res.status(400).json({ error: "Missing required fields to create course." });
+    }
+
+    const checkQuery = 'SELECT * FROM tblCourses WHERE CourseNumber = ?'; //CourseNumber is the same thing as CourseCode
+    db.get(checkQuery, [courseCode], (err, row) => {
+        if (err) {
+            console.error("Error checking for existing course:", err);
+            return res.status(500).json({ error: "Database error while checking for course." });
+        }
+
+        if (row) {
+            return res.status(409).json({ error: "Course number already exists." });
+        }
+
+        const insertQuery = `
+            INSERT INTO tblCourses (CourseNumber, CourseName, CourseSection, JoinCode)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        db.run(insertQuery, [courseCode, courseName, courseSection, joinCode], function (err) {
+            if (err) {
+                console.error("Error inserting course:", err);
+                return res.status(500).json({ error: "Database error during course insertion." });
+            }
+            return res.status(201).json({ message: "Course created successfully." });
+        });
+    });
+});
+
+
+// Get all active courses
+app.get('/courses', (req, res) => {
+    const query = `
+        SELECT CourseNumber, CourseName, CourseSection, JoinCode
+        FROM tblCourses
+    `;
+
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching courses:", err); // <--- check your backend terminal for this
+            return res.status(500).json({ error: "Database error while fetching courses." });
+        }
+
+        return res.status(200).json({ courses: rows });
+    });
+});
+
+
+// Get students in a specific course
+app.get('/courses/:courseCode/students', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        SELECT u.FirstName, u.LastName, u.Email
+        FROM tblEnrollments e
+        JOIN tblUsers u ON e.StudentEmail = u.Email
+        WHERE e.CourseCode = ?
+    `;
+
+    db.all(query, [courseCode], (err, rows) => {
+        if (err) {
+            console.error("Error fetching students:", err);
+            return res.status(500).json({ error: "Database error while fetching students." });
+        }
+
+        return res.status(200).json({ students: rows });
+    });
+});
+
+
+// Delete a course
+app.delete('/courses/:courseCode', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        DELETE FROM tblCourses
+        WHERE CourseNumber = ?
+    `;
+
+    db.run(query, [courseCode], function(err) {
+        if (err) {
+            console.error("Error deleting course:", err);
+            return res.status(500).json({ error: "Database error while deleting course." });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ error: "Course not found." });
+        }
+
+        return res.status(200).json({ message: "Course deleted successfully." });
+    });
+});
+
+
+app.get('/session/verify', (req, res, next) =>{
+    // Will clear out old sessions from the database that are not valid.
+    const deleteOldSessions = () => {
+        const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+        const strCommand = 'DELETE FROM tblSessions WHERE StartDateTime < ?';
+        db.run(strCommand, [cutoff], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })
+    }
+
+    deleteOldSessions()
+
+    const sessionID = req.cookies.sessionID
+    if (!sessionID) {
+        return res.status(401).json({ error: "Not logged in" });  // If no session, reject
+    }
+
+    const getInfoQuery = `
+    SELECT u.UserId, u.FirstName, u.LastName, u.Email, u.Role 
+    FROM tblSessions s
+    JOIN tblUsers u ON s.UserID = u.UserID
+    WHERE s.SessionID = ?`
+
+    db.get(getInfoQuery, [sessionID], (err, row) => {
+        if (err) {
+            console.error("Error verifying session:", err);
+            return res.status(500).json({ error: "Server error during session verification." });
+        }
+        if (!row) {
+            return res.status(401).json({ status: "invalid", error: "Session not found or expired." });
+        }
+        
+        return res.status(200).json({
+            status: "valid",
+            user: {
+                UserId: row.UserId,
+                FirstName: row.FirstName,
+                LastName: row.LastName,
+                Email: row.Email,
+                Role: row.Role
+            }
+        })
+    })
+})
 
 
 app.get('/',(req,res,next) => {

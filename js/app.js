@@ -35,7 +35,8 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         });
 
         //Click event for clicking login button 
-        document.querySelector('#btnLogin').addEventListener('click', async function() {
+        document.querySelector('#btnLogin').addEventListener('click', async function(e) {
+            e.preventDefault()
 
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
@@ -85,13 +86,16 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     },
                     body: JSON.stringify({
                         username: strEmail,
-                        password: strPassword
-                    })
+                        password: strPassword,
+                    }),
+                    credentials: 'include',
                 })
 
                 userData = await response.json()
                 
                 if(response.ok){
+                    localStorage.setItem('currentUser', JSON.stringify(userData.user));
+
                     Swal.fire({
                         title: 'Login Successful!',
                         text: `Welcome, ${userData.user.FirstName}`,
@@ -357,3 +361,49 @@ async function loginUser(username, password) {
         console.error("Login failed:", data.error);
     }
     }
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const response = await fetch('http://localhost:8000/session/verify', {
+        method: 'GET',
+        credentials: 'include'  // Sends cookies.
+    })
+    
+    userData = await response.json()
+
+    if(response.ok){
+        localStorage.setItem('currentUser', JSON.stringify(userData.user));
+
+        Swal.fire({
+            title: 'Login Successful!',
+            text: `Welcome, ${userData.user.FirstName}`,
+            icon: 'success'
+        }).then(() => {
+            // Hide login form
+            document.querySelector('#frmLogin').remove()
+
+            //redirect to appropriate role page
+            if (userData.user.Role === 'instructor') {
+                fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
+                .then(res => res.text())
+                .then(html => {
+                    document.body.className = ''; // remove bg-dark and flex centering
+                    document.body.classList.add('bg-light'); // optional: add a light background
+
+                    document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                    document.getElementById("instructorPage").style.display = "block"; //displays instructor page
+                    initalizeInstructorPage()
+            })
+            }else if(userData.user.Role === 'student') {
+                fetch("components/student.html")
+                .then(res => res.text())
+                .then(html => {
+                    document.body.className = ''; // remove bg-dark and flex centering
+                    document.body.classList.add('bg-light'); // optional: add a light background
+                    document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                    document.getElementById("studentPage").style.display = "block"; //displays student page
+
+            })
+            }
+        })
+    }
+})
