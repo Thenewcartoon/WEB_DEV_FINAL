@@ -29,10 +29,54 @@ async function fetchStudentCourses() {
                 <td>${course.CourseNumber}</td>
                 <td>${course.JoinCode}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-danger">Drop</button>
+                <button class="btn btn-sm btn-outline-danger drop-course-btn" data-course-code="${course.CourseNumber}">Drop</button>
                 </td>
             `;
+            
             courseTableBody.appendChild(row);
+        });
+        // 🔻 Add this after the loop to wire up the Drop buttons
+        document.querySelectorAll('.drop-course-btn').forEach(button => {
+            button.addEventListener('click', async (e) => {
+                console.log("Drop Button Clicked")
+                const courseCode = e.target.getAttribute('data-course-code');
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+                const confirm = await Swal.fire({
+                    title: "Are you sure?",
+                    text: `Do you want to drop ${courseCode}?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, drop it!",
+                    cancelButtonText: "Cancel"
+                });
+
+                if (!confirm.isConfirmed) return;
+
+                try {
+                    const response = await fetch('http://localhost:8000/drop-course', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: currentUser.Email,
+                            courseCode
+                        })
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok) {
+                        Swal.fire("Error", result.error || "Could not drop course.", "error");
+                        return;
+                    }
+
+                    Swal.fire("Dropped", "You have left the course.", "success");
+                    fetchStudentCourses(); // Refresh table
+
+                } catch (err) {
+                    console.error("Drop request failed:", err);
+                    Swal.fire("Error", "Failed to drop course.", "error");
+                }
+            });
         });
 
     } catch (err) {

@@ -311,6 +311,46 @@ app.get('/student-courses', (req, res) => {
 });
 
 
+//drop a course from student side
+app.post('/drop-course', (req, res) => {
+    const { email, courseCode } = req.body;
+
+    if (!email || !courseCode) {
+        return res.status(400).json({ error: "Email and course code are required." });
+    }
+
+    db.get(`SELECT UserID FROM tblUsers WHERE Email = ?`, [email], (err, userRow) => {
+        if (err || !userRow) {
+            console.error("Error finding user:", err);
+            return res.status(500).json({ error: "User not found." });
+        }
+
+        const userId = userRow.UserID;
+
+        db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+            if (err || !courseRow) {
+                console.error("Error finding course:", err);
+                return res.status(500).json({ error: "Course not found." });
+            }
+
+            const courseId = courseRow.CourseID;
+
+            db.run(`DELETE FROM tblEnrollments WHERE UserID = ? AND CourseID = ?`, [userId, courseId], function (err) {
+                if (err) {
+                    console.error("Error deleting enrollment:", err);
+                    return res.status(500).json({ error: "Failed to drop course." });
+                }
+
+                return res.status(200).json({ message: "Course dropped successfully." });
+            });
+        });
+    });
+});
+
+
+
+
+
 // Delete a course
 app.delete('/courses/:courseCode', (req, res) => {
     const { courseCode } = req.params;
