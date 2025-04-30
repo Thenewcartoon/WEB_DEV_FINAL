@@ -122,6 +122,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.body.classList.add('bg-light'); // optional: add a light background
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("studentPage").style.display = "block"; //displays student page
+                                initializeJoinCourseButton()
         
                         })
                         }

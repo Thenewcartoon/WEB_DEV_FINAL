@@ -140,6 +140,77 @@ app.post('/register', async (req, res) => {
 });
 
 
+
+app.post('/enroll', (req, res) => {
+    const { joinCode, email } = req.body;
+
+    if (!joinCode || !email) {
+        return res.status(400).json({ error: "Join code and email are required." });
+    }
+
+    console.log("Incoming enroll request body:", req.body);
+
+    // Step 1: Look up user ID based on email
+    db.get(`SELECT UserID FROM tblUsers WHERE Email = ?`, [email], (err, userRow) => {
+        if (err) {
+            console.error("Error finding user:", err);
+            return res.status(500).json({ error: "Database error while finding user." });
+        }
+
+        if (!userRow) {
+            return res.status(404).json({ error: "User not found." });
+        }
+
+        const userId = userRow.UserID;
+
+        // Step 2: Look up course ID using the join code
+        db.get(`SELECT CourseID FROM tblCourses WHERE JoinCode = ?`, [joinCode], (err, courseRow) => {
+            if (err) {
+                console.error("Error finding course:", err);
+                return res.status(500).json({ error: "Database error while finding course." });
+            }
+
+            if (!courseRow) {
+                return res.status(404).json({ error: "Invalid join code." });
+            }
+
+            const courseId = courseRow.CourseID;
+
+            // Step 3: Check if already enrolled
+            db.get(`
+                SELECT * FROM tblEnrollments
+                WHERE CourseID = ? AND UserID = ?
+            `, [courseId, userId], (err, existingRow) => {
+                if (err) {
+                    console.error("Error checking enrollment:", err);
+                    return res.status(500).json({ error: "Database error checking enrollment." });
+                }
+
+                if (existingRow) {
+                    return res.status(409).json({ error: "Already enrolled in this course." });
+                }
+
+                // Step 4: Insert enrollment
+                db.run(`
+                    INSERT INTO tblEnrollments (CourseID, UserID)
+                    VALUES (?, ?)
+                `, [courseId, userId], function (err) {
+                    if (err) {
+                        console.error("Error enrolling user:", err);
+                        return res.status(500).json({ error: "Database error during enrollment." });
+                    }
+
+                    return res.status(200).json({ message: "Successfully enrolled." });
+                });
+            });
+        });
+    });
+});
+
+
+
+
+
 // Create a new course
 app.post('/createCourse', (req, res) => {
     const { courseName, courseCode, courseSection, joinCode } = req.body;

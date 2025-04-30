@@ -1,4 +1,4 @@
-// student.js
+
 // o Complete pending reviews
 // o Reviews should have both public and private feedback options
 // o Review score
@@ -9,11 +9,11 @@
 
 
 //global variables
-let courses = []
-let teams = []
-let questions = [] //global questions array
-let reviews = []  //globalreviews array
-let assignments = []
+let studentCourses = []
+let studentTeams = []
+let studentQuestions = [] //global questions array
+let studentReviews = []  //globalreviews array
+let studentAssignments = []
 
 
 //***************************************************FUNCTIONS****************************************************************************************/
@@ -323,11 +323,11 @@ function displayAssignedReviews() {
 
 // Handle "Generate Join Code" button click
 //<<<<<<< HEAD
-function initalizeStudentPage(){
-    const joinCodeDisplay = document.getElementById('joinCodeDisplay');
+// function initalizeStudentPage(){
+//     const joinCodeDisplay = document.getElementById('joinCodeDisplay');
 //=======
 function initalizeStudentPage(){
-const joinCodeDisplay = document.getElementById('joinCodeDisplay');
+    const joinCodeDisplay = document.getElementById('joinCodeDisplay');
 //>>>>>>> b44b3e5a8e0e72f66b9f06b4788986e1df58f77d
     const joinCodeText = document.getElementById('joinCodeText');
     const generateJoinCodeBtn = document.getElementById('generateJoinCode');
@@ -716,6 +716,50 @@ const joinCodeDisplay = document.getElementById('joinCodeDisplay');
             currentJoinCode = '';
         });
     }
+    
+    
+    //***********Joining a Course logic*************** */
+    const joinCourseBtn = document.getElementById('joinCourseBtn');
+    console.log("Found:", joinCourseBtn);
+    const joinCodeInput = document.getElementById('joinCodeInput');
+    if (joinCourseBtn && joinCodeInput) {
+        joinCourseBtn.addEventListener('click', async () => {
+            console.log('Join button clicked!');
+            const joinCode = joinCodeInput.value.trim();
+            if (!joinCode) {
+                Swal.fire("Error", "Please enter a valid join code.", "warning");
+                return;
+            }
+    
+            try {
+                const response = await fetch(`http://localhost:8000/enroll`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ joinCode })
+                });
+    
+                const result = await response.json();
+    
+                if (!response.ok) {
+                    Swal.fire("Failed", result.error || "Could not join course.", "error");
+                    return;
+                }
+    
+                Swal.fire("Success", "You have joined the course!", "success").then(() => {
+                    // Refresh the course list after joining (you can implement this later)
+                    // fetchStudentCourses();
+                });
+    
+            } catch (error) {
+                console.error("Error joining course:", error);
+                Swal.fire("Error", "An unexpected error occurred.", "error");
+            }
+        });
+    }
 
     //***************************************************End of Courses Tab********************************************* */
-}}; }
+}}; 
+document.addEventListener('DOMContentLoaded', () => {
+    initalizeStudentPage();
+});
