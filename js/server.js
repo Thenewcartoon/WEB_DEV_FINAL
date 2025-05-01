@@ -57,7 +57,7 @@ app.post('/validateUserLogin', (req, res, next) =>{
                     res.cookie('sessionID', strSessionID, {
                     httpOnly: true,
                     secure: true, 
-                    sameSite: 'Strict',
+                    sameSite: 'None', //Cookies are not set unless this is none, but secure must be true.
                     maxAge: 12 * 60 * 60 * 1000 // Cookie will be removed after 12 hours.
                     })
 

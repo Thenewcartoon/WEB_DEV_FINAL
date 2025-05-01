@@ -349,7 +349,8 @@ async function loginUser(username, password) {
         body: JSON.stringify({
             username: username, // Email
             password: password
-        })
+        }),
+        credentials: 'include'
     });
     
     const data = await response.json();
@@ -379,7 +380,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             icon: 'success'
         }).then(() => {
             // Hide login form
-            document.querySelector('#frmLogin').remove()
+            document.querySelector('#divSelect').style.display = 'none';
+            // document.querySelector('#frmLogin').remove()
 
             //redirect to appropriate role page
             if (userData.user.Role === 'instructor') {
