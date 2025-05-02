@@ -336,6 +336,7 @@ app.get('/courses/:courseCode/teams', (req, res) => {
         rows.forEach(row => {
             if (!teamsMap[row.GroupID]) {
                 teamsMap[row.GroupID] = {
+                    groupId: row.GroupID,           // 👈 ADD THIS
                     teamName: row.GroupName,
                     members: []
                 };
@@ -346,6 +347,64 @@ app.get('/courses/:courseCode/teams', (req, res) => {
         // Convert to array
         const teams = Object.values(teamsMap);
         res.status(200).json({ teams });
+    });
+});
+
+
+//put for updating teams
+app.put('/teams/:groupId', (req, res) => {
+    const { groupId } = req.params;
+    const { teamName, studentEmails, courseCode } = req.body;
+
+    if (!teamName || !studentEmails || !Array.isArray(studentEmails) || studentEmails.length === 0) {
+        return res.status(400).json({ error: "Invalid data." });
+    }
+
+    // Step 1: Get CourseID from courseCode
+    db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+        if (err || !courseRow) {
+            return res.status(404).json({ error: "Course not found." });
+        }
+
+        const courseID = courseRow.CourseID;
+
+        // Step 2: Update team name
+        db.run(`UPDATE tblCourseGroups SET GroupName = ?, CourseID = ? WHERE GroupID = ?`,
+            [teamName, courseID, groupId],
+            function (err) {
+                if (err) {
+                    console.error("Error updating team name:", err);
+                    return res.status(500).json({ error: "Failed to update team." });
+                }
+
+                // Step 3: Remove existing members
+                db.run(`DELETE FROM tblGroupMembers WHERE GroupID = ?`, [groupId], function (err) {
+                    if (err) {
+                        console.error("Error clearing group members:", err);
+                        return res.status(500).json({ error: "Failed to update members." });
+                    }
+
+                    // Step 4: Add new members
+                    const insertStmt = db.prepare(`INSERT INTO tblGroupMembers (GroupID, UserID) VALUES (?, ?)`);
+                    let inserted = 0;
+
+                    studentEmails.forEach(email => {
+                        db.get(`SELECT UserID FROM tblUsers WHERE Email = ?`, [email], (err, userRow) => {
+                            if (!err && userRow) {
+                                insertStmt.run(groupId, userRow.UserID, () => {
+                                    inserted++;
+                                    if (inserted === studentEmails.length) {
+                                        insertStmt.finalize();
+                                        return res.status(200).json({ message: "Team updated successfully." });
+                                    }
+                                });
+                            } else {
+                                console.error("Skipping invalid student email:", email);
+                            }
+                        });
+                    });
+                });
+            });
     });
 });
 
