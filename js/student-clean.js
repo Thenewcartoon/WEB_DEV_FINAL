@@ -128,3 +128,74 @@ if (joinCourseBtn && joinCodeInput) {
     
 }
 }
+
+//function for displaying student teams
+async function fetchAndDisplayStudentTeams() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || !currentUser.Email) {
+        console.error("No logged-in student found.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/student-teams?email=${encodeURIComponent(currentUser.Email)}`);
+        const result = await response.json();
+
+        if (!response.ok) {
+            console.error("Failed to fetch student teams:", result.error);
+            return;
+        }
+
+        const teamList = document.getElementById('studentTeamList');
+        if (!teamList) {
+            console.error("Could not find studentTeamList element.");
+            return;
+        }
+
+        teamList.innerHTML = ''; // Clear any previous items
+
+        result.teams.forEach(team => {
+            const listItem = document.createElement('li');
+            listItem.className = 'list-group-item';
+
+            const membersList = team.members.map(m =>
+                `<li>${m.name} — ${m.contact} (${m.type})</li>`
+            ).join('');
+
+            listItem.innerHTML = `
+                <strong>${team.groupName}</strong><br>
+                Course: ${team.courseNumber} - ${team.courseName}
+                <ul>${membersList}</ul>
+            `;
+
+            teamList.appendChild(listItem);
+        });
+
+    } catch (err) {
+        console.error("Fetch error:", err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const teamsTab = document.getElementById('teams-tab');
+    if (teamsTab) {
+        teamsTab.addEventListener('click', () => {
+            fetchAndDisplayStudentTeams();
+        });
+    } else {
+        console.warn("Element with ID 'teams-tab' not found.");
+    }
+});
+
+
+function initializeStudentPageEvents() {
+    const teamsTab = document.getElementById('teams-tab');
+    if (teamsTab) {
+        teamsTab.addEventListener('click', () => {
+            fetchAndDisplayStudentTeams();
+        });
+    } else {
+        console.warn("teams-tab button not found.");
+    }
+}
+

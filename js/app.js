@@ -124,6 +124,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.getElementById("studentPage").style.display = "block"; //displays student page
                                 initializeJoinCourseButton()
                                 fetchStudentCourses()
+                                initializeStudentPageEvents()
         
                         })
                         }
