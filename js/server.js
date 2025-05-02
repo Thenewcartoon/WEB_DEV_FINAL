@@ -307,6 +307,26 @@ app.get('/session/verify', (req, res, next) =>{
     })
 })
 
+app.post('/logout', (req, res, next) => {
+    const sessionID = req.cookies.sessionID
+
+    if (sessionID){
+        const strCommand = 'DELETE FROM tblSessions WHERE SessionID = ?';
+        db.run(strCommand, [sessionID], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })  
+
+        res.clearCookie('sessionID', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        })
+    }
+    res.status(200).send('Logged out successfully');
+})
+
 
 app.get('/',(req,res,next) => {
     res.status(200).json({message:"Server is working"})

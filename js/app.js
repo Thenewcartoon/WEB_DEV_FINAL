@@ -115,6 +115,17 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("instructorPage").style.display = "block"; //displays instructor page
                                 initalizeInstructorPage()
+
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
                         })
                         }else if(role === 'student') {
                             fetch("components/student.html")
@@ -124,6 +135,18 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.body.classList.add('bg-light'); // optional: add a light background
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("studentPage").style.display = "block"; //displays student page
+
+                                //Have to add the logout button listener after the button is created in student.html
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
         
                         })
                         }
@@ -394,6 +417,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                     document.getElementById("instructorPage").style.display = "block"; //displays instructor page
                     initalizeInstructorPage()
+
+                    document.getElementById('confirmLogout').addEventListener('click', async () => {
+                        const response = await fetch('http://localhost:8000/logout', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                        if (response.ok) {
+                            // Reloads the html
+                            window.location.href = window.location.href;
+                        }
+                });
             })
             }else if(userData.user.Role === 'student') {
                 fetch("components/student.html")
@@ -403,6 +437,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.body.classList.add('bg-light'); // optional: add a light background
                     document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                     document.getElementById("studentPage").style.display = "block"; //displays student page
+
+                    //Have to add the logout button listener here so that way the code will load it after the button exists.
+                    document.getElementById('confirmLogout').addEventListener('click', async () => {
+                        const response = await fetch('http://localhost:8000/logout', {
+                            method: 'POST',
+                            credentials: 'include'
+                        });
+                        if (response.ok) {
+                            //Reloads the html
+                            window.location.href = window.location.href;
+                        }
+                    });
 
             })
             }
