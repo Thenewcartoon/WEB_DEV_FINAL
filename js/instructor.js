@@ -619,10 +619,38 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
 
                 // 🔧 Wire up Delete button (optional for now)
                 const deleteBtn = listItem.querySelector('.btn-delete-team');
-                deleteBtn.addEventListener('click', () => {
-                    // You can wire up delete logic here later
-                    console.log("Delete clicked for team:", team.teamName);
+                deleteBtn.addEventListener('click', async () => {
+                    const confirmed = await Swal.fire({
+                        title: "Are you sure?",
+                        text: "This will permanently delete the team.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Yes, delete it!"
+                    });
+
+                    if (!confirmed.isConfirmed) return;
+
+                    try {
+                        const response = await fetch(`http://localhost:8000/teams/${team.groupId}`, {
+                            method: 'DELETE'
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            Swal.fire("Error", result.error || "Failed to delete team.", "error");
+                            return;
+                        }
+
+                        Swal.fire("Deleted!", "Team has been deleted.", "success");
+                        fetchAndDisplayTeamsForCourse(courseCode); // 🔁 Refresh the list
+
+                    } catch (err) {
+                        console.error("Error deleting team:", err);
+                        Swal.fire("Error", "Something went wrong.", "error");
+                    }
                 });
+
             });
         })
         .catch(err => {

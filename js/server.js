@@ -546,6 +546,31 @@ app.delete('/courses/:courseCode', (req, res) => {
 
 
 
+app.delete('/teams/:groupId', (req, res) => {
+    const groupId = req.params.groupId;
+
+    db.serialize(() => {
+        // First delete from tblGroupMembers
+        db.run(`DELETE FROM tblGroupMembers WHERE GroupID = ?`, [groupId], function (err) {
+            if (err) {
+                console.error("Error deleting group members:", err);
+                return res.status(500).json({ error: "Failed to delete group members." });
+            }
+
+            // Then delete from tblCourseGroups
+            db.run(`DELETE FROM tblCourseGroups WHERE GroupID = ?`, [groupId], function (err) {
+                if (err) {
+                    console.error("Error deleting group:", err);
+                    return res.status(500).json({ error: "Failed to delete team." });
+                }
+
+                res.status(200).json({ message: "Team deleted successfully." });
+            });
+        });
+    });
+});
+
+
 
 app.get('/',(req,res,next) => {
     res.status(200).json({message:"Server is working"})
