@@ -870,94 +870,118 @@ function initalizeInstructorPage() {
     
         //logic for after pushing the create team button
         if (createTeamBtn) {
-            createTeamBtn.addEventListener('click', () => {
-                const selectedCourseCode = document.getElementById('teamCourseSelect').value
-                const teamName = document.getElementById('teamName').value.trim()
-    
-                //get all selected students
-                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input')
+            createTeamBtn.addEventListener('click', async () => {
+                const selectedCourseCode = document.getElementById('teamCourseSelect').value;
+                const teamName = document.getElementById('teamName').value.trim();
+        
+                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
                 const selectedStudents = Array.from(studentCheckboxes)
                     .filter(cb => cb.checked)
-                    .map(cb => cb.value)
-    
-                //validation
+                    .map(cb => cb.value);  // These should be student emails
+        
+                // Validation
                 if (!selectedCourseCode) {
-                    alert('Please select a course')
-                    return
+                    Swal.fire("Error", "Please select a course.", "warning");
+                    return;
                 }
                 if (!teamName) {
-                    alert('Please enter a team name')
-                    return
+                    Swal.fire("Error", "Please enter a team name.", "warning");
+                    return;
                 }
-                if (selectedStudents.length ===0) {
-                    alert('Please select at least one student')
-                    return
+                if (selectedStudents.length === 0) {
+                    Swal.fire("Error", "Please select at least one student.", "warning");
+                    return;
                 }
-                teams.push({
-                    courseCode: selectedCourseCode, teamName,
-                    members: selectedStudents
-                })
-    
-                //display in the list
-                const listItem = document.createElement('li')
-                listItem.className = 'list-group-item'
-                listItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>${teamName}</strong><br>
-                    Course: ${selectedCourseCode}<br>
-                    Members: ${selectedStudents.join(', ')}
-                  </div>
-                  <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
-                  </div>
-                </div>
-              `
-                teamList.appendChild(listItem)
-    
-    
-                //button for editing current team
-                const editBtn = listItem.querySelector('.btn-edit-team');
-                editBtn.addEventListener('click', () => {
-                // Fill the Create Team form with this team's data
-                    document.getElementById('teamName').value = teamName;
-                    document.getElementById('teamCourseSelect').value = selectedCourseCode;
-    
-                    const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
-                    studentCheckboxes.forEach(cb => {
-                        cb.checked = selectedStudents.includes(cb.value);
+        
+                try {
+                    const response = await fetch('http://localhost:8000/teams', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            courseCode: selectedCourseCode,
+                            teamName,
+                            studentEmails: selectedStudents
+                        })
                     });
-    
-                    // Optionally: remove the original team so they don't get duplicated on save
-                    listItem.remove();
-    
-                    const index = teams.findIndex(team =>
-                        team.teamName === teamName &&
-                        team.courseCode === selectedCourseCode
-                    );
-                    if (index !== -1) {
-                        teams.splice(index, 1);
+        
+                    const result = await response.json();
+        
+                    if (!response.ok) {
+                        Swal.fire("Error", result.error || "Failed to create team.", "error");
+                        return;
                     }
-                });
-    
-                //button for deleting team
-                const deleteBtn = listItem.querySelector('.btn-delete-team')
-                deleteBtn.addEventListener('click', () => {
-                    listItem.remove()
-                    const index = teams.findIndex(team =>
-                        team.teamName === teamName &&
-                        team.courseCode === selectedCourseCode
-                    )
-                    if (index !== -1) {
-                        teams.splice(index, 1)
-                    }
-    
-                //reset form
-                document.getElementById('teamName').value = ''
-                studentCheckboxes.forEach(cb => cb.checked = false)
-            })
-        })
+        
+                    // Display the team in the list
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    listItem.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <strong>${teamName}</strong><br>
+                            Course: ${selectedCourseCode}<br>
+                            Members: ${selectedStudents.join(', ')}
+                          </div>
+                          <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
+                          </div>
+                        </div>
+                    `;
+                    teamList.appendChild(listItem);
+        
+                    // Success alert
+                    Swal.fire("Success", "Team created successfully!", "success");
+        
+                    // Edit button
+                    const editBtn = listItem.querySelector('.btn-edit-team');
+                    editBtn.addEventListener('click', () => {
+                        document.getElementById('teamName').value = teamName;
+                        document.getElementById('teamCourseSelect').value = selectedCourseCode;
+        
+                        const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
+                        studentCheckboxes.forEach(cb => {
+                            cb.checked = selectedStudents.includes(cb.value);
+                        });
+        
+                        listItem.remove();
+        
+                        const index = teams.findIndex(team =>
+                            team.teamName === teamName &&
+                            team.courseCode === selectedCourseCode
+                        );
+                        if (index !== -1) {
+                            teams.splice(index, 1);
+                        }
+                    });
+        
+                    // Delete button
+                    const deleteBtn = listItem.querySelector('.btn-delete-team');
+                    deleteBtn.addEventListener('click', () => {
+                        listItem.remove();
+        
+                        const index = teams.findIndex(team =>
+                            team.teamName === teamName &&
+                            team.courseCode === selectedCourseCode
+                        );
+                        if (index !== -1) {
+                            teams.splice(index, 1);
+                        }
+        
+                        document.getElementById('teamName').value = '';
+                        studentCheckboxes.forEach(cb => cb.checked = false);
+                    });
+        
+                    // Reset form after team is added
+                    document.getElementById('teamName').value = '';
+                    studentCheckboxes.forEach(cb => cb.checked = false);
+        
+                } catch (err) {
+                    console.error("Error creating team:", err);
+                    Swal.fire("Error", "Something went wrong while creating the team.", "error");
+                }
+            });
+        }
+        
         //********************************************End of Teams tab************************************************************************** */
         //-----------------------------------------------------------------------------------------------------------------------------------------
     
@@ -1042,7 +1066,7 @@ if (createCourseBtn) {
         populateReportCourseDropdown()
     
      //***************************************************End of Courses Tab********************************************* */
-}};
+};
 
 //***********************************END OF FUNCTIONS************************************************************************ */
 

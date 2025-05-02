@@ -244,6 +244,55 @@ app.post('/createCourse', (req, res) => {
     });
 });
 
+//sending newly created teams to database
+app.post('/teams', (req, res) => {
+    const { courseCode, teamName, studentEmails } = req.body;
+
+    if (!courseCode || !teamName || !Array.isArray(studentEmails)) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Step 1: Get CourseID from CourseNumber
+    db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+        if (err || !courseRow) {
+            console.error("Error finding course:", err);
+            return res.status(404).json({ error: "Course not found." });
+        }
+
+        const courseId = courseRow.CourseID;
+
+        // Step 2: Insert into tblCourseGroups
+        db.run(`INSERT INTO tblCourseGroups (GroupName, CourseID) VALUES (?, ?)`, [teamName, courseId], function (err) {
+            if (err) {
+                console.error("Error inserting group:", err);
+                return res.status(500).json({ error: "Failed to create group." });
+            }
+
+            const groupId = this.lastID;
+
+            // Step 3: Get UserIDs from studentEmails
+            const placeholders = studentEmails.map(() => '?').join(',');
+            db.all(`SELECT UserID FROM tblUsers WHERE Email IN (${placeholders})`, studentEmails, (err, userRows) => {
+                if (err || userRows.length === 0) {
+                    console.error("Error finding users:", err);
+                    return res.status(500).json({ error: "Failed to get student IDs." });
+                }
+
+                // Step 4: Insert each into tblGroupMembers
+                const insertStmt = db.prepare(`INSERT INTO tblGroupMembers (GroupID, UserID) VALUES (?, ?)`);
+                userRows.forEach(row => {
+                    insertStmt.run(groupId, row.UserID);
+                });
+                insertStmt.finalize();
+
+                return res.status(201).json({ message: "Team created and students assigned." });
+            });
+        });
+    });
+});
+
+
+
 
 // Get all active courses
 app.get('/courses', (req, res) => {
