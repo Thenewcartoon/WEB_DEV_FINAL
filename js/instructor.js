@@ -1,4 +1,3 @@
- 
 
 // instructor.js
 
@@ -1088,5 +1087,7 @@ if (createCourseBtn) {
 
 
 // Handle "Generate Join Code" button click
+
+
 
 
