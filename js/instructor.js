@@ -577,6 +577,30 @@ function setupCourseStudentListener() {
     });
 }
 
+
+//Displays teams the instructor has created for specific course. This is for the instructor side
+function fetchAndDisplayTeamsForCourse(courseCode) {
+    fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/teams`)
+        .then(res => res.json())
+        .then(data => {
+            const teamList = document.getElementById('teamList');
+            teamList.innerHTML = '';
+
+            data.teams.forEach(team => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `
+                    <strong>${team.teamName}</strong><br>
+                    Members: ${team.members.join(', ')}
+                `;
+                teamList.appendChild(listItem);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading teams:", err);
+        });
+}
+
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -969,6 +993,7 @@ function initalizeInstructorPage() {
         
                         document.getElementById('teamName').value = '';
                         studentCheckboxes.forEach(cb => cb.checked = false);
+                        fetchAndDisplayTeamsForCourse(selectedCourseCode)
                     });
         
                     // Reset form after team is added
@@ -982,6 +1007,12 @@ function initalizeInstructorPage() {
             });
         }
         
+        document.getElementById('teamCourseSelect').addEventListener('change', (e) => {
+            const selectedCourseCode = e.target.value;
+            if (selectedCourseCode) {
+                fetchAndDisplayTeamsForCourse(selectedCourseCode);
+            }
+        });
         //********************************************End of Teams tab************************************************************************** */
         //-----------------------------------------------------------------------------------------------------------------------------------------
     

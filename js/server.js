@@ -311,6 +311,46 @@ app.get('/courses', (req, res) => {
     });
 });
 
+//get the teams for each selected course
+app.get('/courses/:courseCode/teams', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        SELECT g.GroupID, g.GroupName, u.FirstName || ' ' || u.LastName AS StudentName
+        FROM tblCourseGroups g
+        JOIN tblCourses c ON g.CourseID = c.CourseID
+        JOIN tblGroupMembers gm ON g.GroupID = gm.GroupID
+        JOIN tblUsers u ON gm.UserID = u.UserID
+        WHERE c.CourseNumber = ?
+        ORDER BY g.GroupID
+    `;
+
+    db.all(query, [courseCode], (err, rows) => {
+        if (err) {
+            console.error("Error fetching teams:", err);
+            return res.status(500).json({ error: "Database error while fetching teams." });
+        }
+
+        // Group students under their teams
+        const teamsMap = {};
+        rows.forEach(row => {
+            if (!teamsMap[row.GroupID]) {
+                teamsMap[row.GroupID] = {
+                    teamName: row.GroupName,
+                    members: []
+                };
+            }
+            teamsMap[row.GroupID].members.push(row.StudentName);
+        });
+
+        // Convert to array
+        const teams = Object.values(teamsMap);
+        res.status(200).json({ teams });
+    });
+});
+
+
+
 
 // Get students in a specific course
 // app.get('/courses/:courseCode/students', (req, res) => {
