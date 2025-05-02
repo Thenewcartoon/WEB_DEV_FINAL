@@ -96,8 +96,7 @@
     <label for="teamCourseSelect" class="form-label">Select Course</label>
     <select class="form-select" id="teamCourseSelect">
         <option selected disabled>Select a course</option>
-        <option value="CS101">CS101 - Intro to Programming</option>
-        <option value="WD101">WD101 - Web Development</option>
+        
         <!-- More courses can be dynamically populated -->
     </select>
 </div>
@@ -105,16 +104,9 @@
 <!-- Students Placeholder (could be checkboxes later) -->
 <div class="mb-3">
     <label class="form-label">Select Students for Team</label>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="Alice" id="student1">
-        <label class="form-check-label" for="student1">Alice</label>
-    </div>
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" value="Bob" id="student2">
-        <label class="form-check-label" for="student2">Bob</label>
-    </div>
-    <!-- You can generate these from JS later -->
+    <div id="studentCheckboxContainer"></div> <!-- JS will populate this -->
 </div>
+
 
 <!-- Team Name Input -->
 <div class="mb-3">

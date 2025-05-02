@@ -497,6 +497,85 @@ async function fetchAndDisplayCourses() {
     }
 }
 
+//populating select course drop down on teams page
+async function populateTeamCourseDropdown() {
+    const courseSelect = document.getElementById('teamCourseSelect');
+    if (!courseSelect) return;
+
+    try {
+        const response = await fetch('http://localhost:8000/courses');
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Failed to fetch courses:", data.error);
+            return;
+        }
+
+        // Clear current options except the default one
+        courseSelect.innerHTML = '<option selected disabled>Select a course</option>';
+
+        data.courses.forEach(course => {
+            const option = document.createElement('option');
+            option.value = course.CourseNumber; // same as CourseCode in your logic
+            option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
+            courseSelect.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Error loading courses:", err);
+    }
+}
+
+//display students based on the selected course
+function setupCourseStudentListener() {
+    const courseSelect = document.getElementById('teamCourseSelect');
+    const studentContainer = document.getElementById('teams');
+
+    if (!courseSelect || !studentContainer) return;
+
+    courseSelect.addEventListener('change', async () => {
+        const courseCode = courseSelect.value;
+        if (!courseCode) return;
+
+        try {
+            const response = await fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/students`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Failed to fetch students:", data.error);
+                return;
+            }
+
+            // Clear existing checkboxes
+            const formCheckElements = studentContainer.querySelectorAll('.form-check');
+            formCheckElements.forEach(el => el.remove());
+
+            // Dynamically create new checkboxes
+            data.students.forEach((student, index) => {
+                const formCheck = document.createElement('div');
+                formCheck.className = 'form-check';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'form-check-input';
+                input.id = `student-${index}`;
+                input.value = student.Email;
+
+                const label = document.createElement('label');
+                label.className = 'form-check-label';
+                label.htmlFor = input.id;
+                label.textContent = `${student.FirstName} ${student.LastName}`;
+
+                formCheck.appendChild(input);
+                formCheck.appendChild(label);
+
+                studentContainer.querySelector('.mb-3:nth-child(2)').appendChild(formCheck);
+            });
+
+        } catch (error) {
+            console.error("Error fetching students:", error);
+        }
+    });
+}
 
 //---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -529,6 +608,8 @@ function initalizeInstructorPage() {
         let currentJoinCode = ''; // Store latest generated join code (optional)
 
         fetchAndDisplayCourses()
+        setupCourseStudentListener()
+        populateTeamCourseDropdown()
     
         
         //click event for the logout button on the instructor page
