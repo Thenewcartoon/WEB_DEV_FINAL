@@ -43,7 +43,7 @@ app.post('/validateUserLogin', (req, res, next) =>{
                 return res.status(200).json({
                     message: "Login successful",
                     // For now only returns some data.
-                    user: { UserId: row.UserId, FirstName: row.FirstName, LastName: row.LastName, Email: row.Email }
+                    user: { UserID: row.UserID, FirstName: row.FirstName, LastName: row.LastName, Email: row.Email }
                 })
             }
             else{
@@ -212,9 +212,9 @@ app.post('/enroll', (req, res) => {
 
 // Create a new course
 app.post('/createCourse', (req, res) => {
-    const { courseName, courseCode, courseSection, joinCode } = req.body;
+    const { courseName, courseCode, courseSection, joinCode, userID} = req.body;
 
-    if (!courseName || !courseCode || !courseSection || !joinCode) {
+    if (!courseName || !courseCode || !courseSection || !joinCode || !userID) {
         return res.status(400).json({ error: "Missing required fields to create course." });
     }
 
@@ -230,11 +230,11 @@ app.post('/createCourse', (req, res) => {
         }
 
         const insertQuery = `
-            INSERT INTO tblCourses (CourseNumber, CourseName, CourseSection, JoinCode)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO tblCourses (CourseNumber, CourseName, CourseSection, JoinCode, UserID)
+            VALUES (?, ?, ?, ?, ?)
         `;
 
-        db.run(insertQuery, [courseCode, courseName, courseSection, joinCode], function (err) {
+        db.run(insertQuery, [courseCode, courseName, courseSection, joinCode, userID], function (err) {
             if (err) {
                 console.error("Error inserting course:", err);
                 return res.status(500).json({ error: "Database error during course insertion." });
@@ -310,6 +310,23 @@ app.get('/courses', (req, res) => {
         return res.status(200).json({ courses: rows });
     });
 });
+
+// Get all courses for a specific instructor
+app.get('/courses/:userID', (req, res) => {
+    const userID = req.params.userID;
+
+    const query = `SELECT * FROM tblCourses WHERE UserID = ?`;
+
+    db.all(query, [userID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching instructor courses:", err);
+            return res.status(500).json({ error: "Database error while fetching courses." });
+        }
+
+        res.json({ courses: rows });
+    });
+});
+
 
 //get the teams for each selected course
 app.get('/courses/:courseCode/teams', (req, res) => {
