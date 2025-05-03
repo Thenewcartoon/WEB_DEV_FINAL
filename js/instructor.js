@@ -397,10 +397,21 @@ function populateReportCourseDropdown() {
 }
 
 
+function getCurrentUser() {
+    const userStr = localStorage.getItem('currentUser');
+    return userStr ? JSON.parse(userStr) : null;
+}
+
 
 async function fetchAndDisplayCourses() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        Swal.fire("Error", "User not logged in.", "error");
+        return;
+    }
+
     try {
-        const response = await fetch('http://localhost:8000/courses', {
+        const response = await fetch(`http://localhost:8000/courses/${currentUser.UserID}`, {
             method: 'GET',
             credentials: 'include'
         });
@@ -412,13 +423,17 @@ async function fetchAndDisplayCourses() {
         const data = await response.json();
         const coursesFromDB = data.courses;
 
+        // Filter courses by instructor's email
+        const instructorCourses = coursesFromDB;
+
+        const courseTableBody = document.getElementById('courseTableBody');
         courseTableBody.innerHTML = '';
 
-        coursesFromDB.forEach(course => {
+        instructorCourses.forEach(course => {
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${course.CourseName}</td>
-                <td>${course.CourseNumber}</td> <!-- ✅ CourseNumber fixed -->
+                <td>${course.CourseNumber}</td>
                 <td>${course.CourseSection}</td>
                 <td>${course.JoinCode}</td>
                 <td>
@@ -427,8 +442,7 @@ async function fetchAndDisplayCourses() {
                 </td>
             `;
 
-            // --- Set up the Delete button ---
-            const deleteButton = newRow.querySelector('.btn-outline-danger');
+            // Set up the View Students button
             const viewButton = newRow.querySelector('.btn-outline-info');
             viewButton.addEventListener('click', async () => {
                 try {
@@ -454,48 +468,38 @@ async function fetchAndDisplayCourses() {
                 }
             });
 
+            // Set up the Delete button
+            const deleteButton = newRow.querySelector('.btn-outline-danger');
             deleteButton.addEventListener('click', async () => {
-                const confirmed = await Swal.fire({
-                    title: 'Are you sure?',
-                    text: `Delete course ${course.CourseName}?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                });
+                try {
+                    const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
 
-                if (confirmed.isConfirmed) {
-                    try {
-                        const deleteResponse = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}`, {
-                            method: 'DELETE',
-                            credentials: 'include'
-                        });
-
-                        if (!deleteResponse.ok) {
-                            const deleteData = await deleteResponse.json();
-                            Swal.fire('Error', deleteData.error || 'Failed to delete course.', 'error');
-                            return;
-                        }
-
-                        Swal.fire('Deleted!', 'Course was deleted.', 'success');
-                        
-                        // ✅ Remove from screen after deletion
-                        newRow.remove();
-
-                    } catch (err) {
-                        console.error('Error deleting course:', err);
-                        Swal.fire('Error', 'An unexpected error occurred.', 'error');
+                    if (!res.ok) {
+                        const result = await res.json();
+                        Swal.fire("Error", result.error || "Failed to delete course.", "error");
+                        return;
                     }
+
+                    Swal.fire("Deleted!", "Course has been deleted.", "success");
+                    // Refresh the course list
+                    fetchAndDisplayCourses();
+                } catch (err) {
+                    console.error("Error deleting course:", err);
+                    Swal.fire("Error", "Could not delete course.", "error");
                 }
             });
 
-            courseTableBody.appendChild(newRow); // ✅ Append the row after setting up delete
+            courseTableBody.appendChild(newRow);
         });
-
     } catch (error) {
-        console.error('Error fetching courses:', error);
+        console.error("Error fetching courses:", error);
+        Swal.fire("Error", "Could not fetch courses.", "error");
     }
 }
+
 
 //populating select course drop down on teams page
 async function populateTeamCourseDropdown() {
@@ -1048,6 +1052,8 @@ if (createCourseBtn) {
         const courseName = document.getElementById('courseName').value.trim();
         const courseCode = document.getElementById('courseCode').value.trim();
         const courseSection = document.getElementById('courseSection').value.trim();
+        const currentUser = getCurrentUser();
+        console.log("DEBUG currentUser:", currentUser);
 
         if (!courseName || !courseCode || !courseSection) {
             alert("Please fill in all fields");
@@ -1065,7 +1071,8 @@ if (createCourseBtn) {
                     courseName,
                     courseCode,
                     courseSection,
-                    joinCode: joinCodeForThisCourse
+                    joinCode: joinCodeForThisCourse,
+                    userID: currentUser.UserID // Assuming you have the user ID from the logged-in user
                 })
             });
 
