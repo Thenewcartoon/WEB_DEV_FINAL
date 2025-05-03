@@ -115,8 +115,8 @@ function populateReviewCourseDropdown() {
 
         courses.forEach(course => {
             const option = document.createElement('option');
-            option.value = course.code;
-            option.textContent = `${course.code} - ${course.name}`;
+            option.value = course.CourseNumber;
+            option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
             reviewCourseSelect.appendChild(option);
         });
     }
@@ -232,8 +232,8 @@ function populateScheduleDropdowns() {
         courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
         courses.forEach(course => {
             const opt = document.createElement('option');
-            opt.value = course.code;
-            opt.textContent = `${course.code} - ${course.name}`;
+            opt.value = course.CourseNumber;
+            opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
             courseSelect.appendChild(opt);
         });
     }
@@ -329,8 +329,8 @@ function populateReviewResultsDropdowns() {
     courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
     courses.forEach(course => {
         const option = document.createElement('option');
-        option.value = course.code;
-        option.textContent = `${course.code} - ${course.name}`;
+        option.value = course.CourseNumber;
+        option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
         courseSelect.appendChild(option);
         });
 
@@ -397,10 +397,10 @@ function populateReportCourseDropdown() {
 
     select.innerHTML = '<option disabled selected>Select a course</option>';
 
-    courses.forEach(c => {
+    courses.forEach(course => {
         const opt = document.createElement('option');
-        opt.value = c.code;
-        opt.textContent = `${c.code} - ${c.name}`;
+        opt.value = course.CourseNumber;
+        opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
         select.appendChild(opt);
     });
 }
@@ -713,9 +713,9 @@ function initalizeInstructorPage() {
     
         let currentJoinCode = ''; // Store latest generated join code (optional)
 
-        fetchAndDisplayCourses()
-        setupCourseStudentListener()
-        populateTeamCourseDropdown()
+        refreshAllCourseDropdowns().then(() => {
+            setupCourseStudentListener();
+        });
     
         
         //click event for the logout button on the instructor page
