@@ -311,6 +311,7 @@ app.get('/courses', (req, res) => {
     });
 });
 
+
 // Get all courses for a specific instructor
 app.get('/courses/:userID', (req, res) => {
     const userID = req.params.userID;

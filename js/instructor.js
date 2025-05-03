@@ -21,6 +21,15 @@ function generateJoinCode(length = 6) {
     return code;
 }
 
+async function refreshAllCourseDropdowns() {
+    await fetchAndDisplayCourses();              // Update table
+    await populateTeamCourseDropdown();          // Teams tab
+    populateReportCourseDropdown();              // Reports tab
+    populateScheduleDropdowns();                 // Schedule tab
+    populateReviewCourseDropdown();              // Reviews tab
+    populateReviewResultsDropdowns();            // Results tab
+}
+
 //function for displaying each question added. it will show the options if the question has any. Also will have an edit and delete button for the questions
 function renderQuestionPreview(question) {
     const list = document.getElementById('reviewQuestionList')  //Find the <ul> element that will hold all previewed questions
@@ -422,6 +431,7 @@ async function fetchAndDisplayCourses() {
 
         const data = await response.json();
         const coursesFromDB = data.courses;
+        courses = coursesFromDB;
 
         // Filter courses by instructor's email
         const instructorCourses = coursesFromDB;
@@ -485,7 +495,8 @@ async function fetchAndDisplayCourses() {
 
                     Swal.fire("Deleted!", "Course has been deleted.", "success");
                     // Refresh the course list
-                    fetchAndDisplayCourses();
+                    await refreshAllCourseDropdowns();
+
                 } catch (err) {
                     console.error("Error deleting course:", err);
                     Swal.fire("Error", "Could not delete course.", "error");
@@ -506,26 +517,35 @@ async function populateTeamCourseDropdown() {
     const courseSelect = document.getElementById('teamCourseSelect');
     if (!courseSelect) return;
 
+    // ⛳️ Get instructor ID from localStorage or session
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const UserId = currentUser?.UserID;
+
+    if (!UserId) {
+        console.error("Instructor not logged in or UserID missing.");
+        return;
+    }
+
     try {
-        const response = await fetch('http://localhost:8000/courses');
+        const response = await fetch(`http://localhost:8000/courses/${UserId}`);
         const data = await response.json();
 
         if (!response.ok) {
-            console.error("Failed to fetch courses:", data.error);
+            console.error("Failed to fetch instructor courses:", data.error);
             return;
         }
 
-        // Clear current options except the default one
+        // Clear existing options
         courseSelect.innerHTML = '<option selected disabled>Select a course</option>';
 
         data.courses.forEach(course => {
             const option = document.createElement('option');
-            option.value = course.CourseNumber; // same as CourseCode in your logic
+            option.value = course.CourseNumber;
             option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
             courseSelect.appendChild(option);
         });
     } catch (err) {
-        console.error("Error loading courses:", err);
+        console.error("Error loading instructor courses:", err);
     }
 }
 
@@ -1091,14 +1111,15 @@ if (createCourseBtn) {
                 title: 'Success!',
                 text: 'Course created successfully.',
                 icon: 'success'
-            }).then(() => {
+            }).then(async() => {
                 // Clear fields manually now (no form.reset())
                 document.getElementById('courseName').value = '';
                 document.getElementById('courseCode').value = '';
                 document.getElementById('courseSection').value = '';
                 joinCodeDisplay.classList.add('d-none');
                 currentJoinCode = '';
-                fetchAndDisplayCourses();
+                await refreshAllCourseDropdowns();
+
             });
 
         } catch (error) {
