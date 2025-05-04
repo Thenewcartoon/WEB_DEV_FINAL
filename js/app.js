@@ -138,6 +138,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
 
                                 initializeJoinCourseButton()
                                 fetchStudentCourses()
+                                initializeStudentPageEvents()
 
 
                                 //Have to add the logout button listener after the button is created in student.html
@@ -446,6 +447,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     document.body.classList.add('bg-light'); // optional: add a light background
                     document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                     document.getElementById("studentPage").style.display = "block"; //displays student page
+                    
+                    //Copies the one on login.
+                    initializeJoinCourseButton()
+                    fetchStudentCourses()
+                    initializeStudentPageEvents()
 
                     //Have to add the logout button listener here so that way the code will load it after the button exists.
                     document.getElementById('confirmLogout').addEventListener('click', async () => {

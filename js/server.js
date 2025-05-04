@@ -1,4 +1,3 @@
- 
 const express = require('express')
 const cors = require('cors')
 const corsOptions = {
@@ -80,7 +79,6 @@ app.post('/validateUserLogin', (req, res, next) => {
         });
     });
 });
-
 
 
 // Register New User Endpoint
@@ -166,136 +164,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Get all active courses
-app.get('/courses', (req, res) => {
-    const query = `
-        SELECT CourseNumber, CourseName, CourseSection, JoinCode
-        FROM tblCourses
-    `;
-
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching courses:", err); // <--- check your backend terminal for this
-            return res.status(500).json({ error: "Database error while fetching courses." });
-        }
-
-        return res.status(200).json({ courses: rows });
-    });
-});
-
-
-// // Get students in a specific course
-// app.get('/courses/:courseCode/students', (req, res) => {
-//     const { courseCode } = req.params;
-
-//     const query = `
-//         SELECT u.FirstName, u.LastName, u.Email
-//         FROM tblEnrollments e
-//         JOIN tblUsers u ON e.StudentEmail = u.Email
-//         WHERE e.CourseCode = ?
-//     `;
-
-//     db.all(query, [courseCode], (err, rows) => {
-//         if (err) {
-//             console.error("Error fetching students:", err);
-//             return res.status(500).json({ error: "Database error while fetching students." });
-//         }
-
-//         return res.status(200).json({ students: rows });
-//     });
-// });
-
-
-// Delete a course
-app.delete('/courses/:courseCode', (req, res) => {
-    const { courseCode } = req.params;
-
-    const query = `
-        DELETE FROM tblCourses
-        WHERE CourseNumber = ?
-    `;
-
-    db.run(query, [courseCode], function(err) {
-        if (err) {
-            console.error("Error deleting course:", err);
-            return res.status(500).json({ error: "Database error while deleting course." });
-        }
-
-        if (this.changes === 0) {
-            return res.status(404).json({ error: "Course not found." });
-        }
-
-        return res.status(200).json({ message: "Course deleted successfully." });
-    });
-});
-
-
-app.get('/session/verify', (req, res, next) =>{
-    // Will clear out old sessions from the database that are not valid.
-    const deleteOldSessions = () => {
-        const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
-        const strCommand = 'DELETE FROM tblSessions WHERE StartDateTime < ?';
-        db.run(strCommand, [cutoff], (err) => {
-            if (err) {
-                console.log("Error cleaning sessions:", err);
-            }
-        })
-    }
-
-    deleteOldSessions()
-
-    const sessionID = req.cookies.sessionID
-    if (!sessionID) {
-        return res.status(401).json({ error: "Not logged in" });  // If no session, reject
-    }
-
-    const getInfoQuery = `
-    SELECT u.UserId, u.FirstName, u.LastName, u.Email, u.Role 
-    FROM tblSessions s
-    JOIN tblUsers u ON s.UserID = u.UserID
-    WHERE s.SessionID = ?`
-
-    db.get(getInfoQuery, [sessionID], (err, row) => {
-        if (err) {
-            console.error("Error verifying session:", err);
-            return res.status(500).json({ error: "Server error during session verification." });
-        }
-        if (!row) {
-            return res.status(401).json({ status: "invalid", error: "Session not found or expired." });
-        }
-        
-        return res.status(200).json({
-            status: "valid",
-            user: {
-                UserID: row.UserID,
-                FirstName: row.FirstName,
-                LastName: row.LastName,
-                Email: row.Email,
-                Role: row.Role
-            }
-        })
-    })
-})
-
-app.post('/logout', (req, res, next) => {
-    const sessionID = req.cookies.sessionID
-
-    if (sessionID){
-        const strCommand = 'DELETE FROM tblSessions WHERE SessionID = ?';
-        db.run(strCommand, [sessionID], (err) => {
-            if (err) {
-                console.log("Error cleaning sessions:", err);
-            }
-        })  
-
-        res.clearCookie('sessionID', {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None'
-        })
-    }
-    res.status(200).send('Logged out successfully');
-})
 
 
 app.post('/enroll', (req, res) => {
@@ -449,6 +317,98 @@ app.post('/teams', (req, res) => {
     });
 });
 
+
+
+//route for creating reviews
+app.post('/create-assessment', (req, res) => {
+    const { courseCode, title, questions } = req.body;
+
+    if (!courseCode || !title || !Array.isArray(questions) || questions.length === 0) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Default dates can be used or updated later
+    const startDate = new Date().toISOString().split("T")[0];
+    const endDate = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]; // +7 days
+
+    // Step 1: Get CourseID
+    db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+        if (err || !courseRow) {
+            console.error("Course lookup failed:", err);
+            return res.status(500).json({ error: "Course not found." });
+        }
+
+        const courseID = courseRow.CourseID;
+
+        // Step 2: Insert into tblAssessments
+        db.run(`
+            INSERT INTO tblAssessments (CourseID, StartDate, EndDate, Name, Status, Type)
+            VALUES (?, ?, ?, ?, 'Active', 'Peer')
+        `, [courseID, startDate, endDate, title], function (err) {
+            if (err) {
+                console.error("Assessment insert failed:", err);
+                return res.status(500).json({ error: "Failed to create assessment." });
+            }
+
+            const assessmentID = this.lastID;
+
+            // Step 3: Insert each question
+            const stmt = db.prepare(`
+                INSERT INTO tblAssessmentQuestions 
+                (AssessmentID, QuestionType, Options, QuestionNarrative, HelperText)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+
+            questions.forEach(q => {
+                const optionsJSON = q.options.length > 0 ? JSON.stringify(q.options) : null;
+                stmt.run(assessmentID, q.type, optionsJSON, q.text, '');
+            });
+
+            stmt.finalize();
+            return res.status(201).json({ message: "Assessment and questions saved successfully." });
+        });
+    });
+});
+
+// returns assesssments that belong to logged in instructor
+app.get('/instructor-assessments/:userID', (req, res) => {
+    const userID = req.params.userID;
+
+    const query = `
+        SELECT a.AssessmentID, a.Name, c.CourseNumber, c.CourseName
+        FROM tblAssessments a
+        JOIN tblCourses c ON a.CourseID = c.CourseID
+        WHERE c.UserID = ?
+        ORDER BY a.AssessmentID DESC
+    `;
+
+    db.all(query, [userID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching assessments:", err);
+            return res.status(500).json({ error: "Database error while fetching assessments." });
+        }
+
+        res.status(200).json({ assessments: rows });
+    });
+});
+
+
+// Get all active courses
+app.get('/courses', (req, res) => {
+    const query = `
+        SELECT CourseNumber, CourseName, CourseSection, JoinCode
+        FROM tblCourses
+    `;
+
+    db.all(query, [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching courses:", err); // <--- check your backend terminal for this
+            return res.status(500).json({ error: "Database error while fetching courses." });
+        }
+
+        return res.status(200).json({ courses: rows });
+    });
+});
 
 
 // Get all courses for a specific instructor
@@ -637,6 +597,68 @@ app.get('/student-courses', (req, res) => {
 });
 
 
+
+//route for displaying the team/teams a logged in student is in
+app.get('/student-teams', (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: "Missing student email." });
+    }
+
+    const query = `
+        SELECT 
+            g.GroupID,
+            g.GroupName,
+            c.CourseNumber,
+            c.CourseName,
+            u.Email AS MemberEmail,
+            u.FirstName || ' ' || u.LastName AS MemberName,
+            COALESCE(p.PhoneNumber, s.UserName) AS ContactInfo,
+            COALESCE(NULLIF(p.PhoneNumber, ''), s.SocialType) AS ContactType
+        FROM tblUsers current
+        JOIN tblGroupMembers gm_self ON current.UserID = gm_self.UserID
+        JOIN tblCourseGroups g ON gm_self.GroupID = g.GroupID
+        JOIN tblCourses c ON g.CourseID = c.CourseID
+        JOIN tblGroupMembers gm ON g.GroupID = gm.GroupID
+        JOIN tblUsers u ON gm.UserID = u.UserID
+        LEFT JOIN tblPhone p ON u.Email = p.UserEmail
+        LEFT JOIN tblSocials s ON u.Email = s.UserEmail
+        WHERE current.Email = ?
+        ORDER BY g.GroupID, u.FirstName
+    `;
+
+    db.all(query, [email], (err, rows) => {
+        if (err) {
+            console.error("Error fetching student teams with members:", err);
+            return res.status(500).json({ error: "Database error while fetching student teams." });
+        }
+
+        const grouped = {};
+
+        rows.forEach(row => {
+            if (!grouped[row.GroupID]) {
+                grouped[row.GroupID] = {
+                    groupName: row.GroupName,
+                    courseNumber: row.CourseNumber,
+                    courseName: row.CourseName,
+                    members: []
+                };
+            }
+
+            grouped[row.GroupID].members.push({
+                name: row.MemberName,
+                contact: row.ContactInfo || 'N/A',
+                type: row.ContactType || 'N/A'
+            });
+        });
+
+        const teams = Object.values(grouped);
+        return res.status(200).json({ teams });
+    });
+});
+
+
 //drop a course from student side
 app.post('/drop-course', (req, res) => {
     const { email, courseCode } = req.body;
@@ -674,6 +696,35 @@ app.post('/drop-course', (req, res) => {
 });
 
 
+
+
+
+
+// Delete a course
+app.delete('/courses/:courseCode', (req, res) => {
+    const { courseCode } = req.params;
+
+    const query = `
+        DELETE FROM tblCourses
+        WHERE CourseNumber = ?
+    `;
+
+    db.run(query, [courseCode], function(err) {
+        if (err) {
+            console.error("Error deleting course:", err);
+            return res.status(500).json({ error: "Database error while deleting course." });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ error: "Course not found." });
+        }
+
+        return res.status(200).json({ message: "Course deleted successfully." });
+    });
+});
+
+
+
 app.delete('/teams/:groupId', (req, res) => {
     const groupId = req.params.groupId;
 
@@ -698,6 +749,72 @@ app.delete('/teams/:groupId', (req, res) => {
     });
 });
 
+app.get('/session/verify', (req, res, next) =>{
+    // Will clear out old sessions from the database that are not valid.
+    const deleteOldSessions = () => {
+        const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+        const strCommand = 'DELETE FROM tblSessions WHERE StartDateTime < ?';
+        db.run(strCommand, [cutoff], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })
+    }
+
+    deleteOldSessions()
+
+    const sessionID = req.cookies.sessionID
+    if (!sessionID) {
+        return res.status(401).json({ error: "Not logged in" });  // If no session, reject
+    }
+
+    const getInfoQuery = `
+    SELECT u.UserId, u.FirstName, u.LastName, u.Email, u.Role 
+    FROM tblSessions s
+    JOIN tblUsers u ON s.UserID = u.UserID
+    WHERE s.SessionID = ?`
+
+    db.get(getInfoQuery, [sessionID], (err, row) => {
+        if (err) {
+            console.error("Error verifying session:", err);
+            return res.status(500).json({ error: "Server error during session verification." });
+        }
+        if (!row) {
+            return res.status(401).json({ status: "invalid", error: "Session not found or expired." });
+        }
+        
+        return res.status(200).json({
+            status: "valid",
+            user: {
+                UserID: row.UserID,
+                FirstName: row.FirstName,
+                LastName: row.LastName,
+                Email: row.Email,
+                Role: row.Role
+            }
+        })
+    })
+})
+
+app.post('/logout', (req, res, next) => {
+    const sessionID = req.cookies.sessionID
+
+    if (sessionID){
+        const strCommand = 'DELETE FROM tblSessions WHERE SessionID = ?';
+        db.run(strCommand, [sessionID], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })  
+
+        res.clearCookie('sessionID', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        })
+    }
+    res.status(200).send('Logged out successfully');
+})
 
 
 app.get('/',(req,res,next) => {

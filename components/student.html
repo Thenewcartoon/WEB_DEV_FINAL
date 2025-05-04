@@ -1,9 +1,5 @@
     <div id="studentPage" class="container mt-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="text-center mb-0">Student Dashboard</h2>
-            <!-- <button id="btnLogout" class="btn btn-outline-secondary">Logout</button> -->
-        </div>
-    
+        <h2 class="text-center mb-4">Student Dashboard</h2>
     
         <!-- Navigation Tabs -->
         <ul class="nav nav-tabs" id="studentTabs" role="tablist">
@@ -27,7 +23,7 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="logout-tab" data-bs-toggle="tab" data-bs-target="#logout" type="button" role="tab">Logout</button>
-            </li>            
+            </li>  
         </ul>
     
         <!-- Tab Content -->
@@ -72,30 +68,15 @@
     
             <!-- Teams Section -->
             <!-- Teams Section -->
-    <div class="tab-pane fade" id="teams" role="tabpanel">
-    <h4>Manage Teams</h4>
-
-    <!-- Select Course -->
-    <div class="mb-3">
-        <label for="teamCourseSelect" class="form-label">Select Course</label>
-        <select class="form-select" id="teamCourseSelect">
-            <option selected disabled>Select a course</option>
-            <option value="CS101">CS101 - Intro to Programming</option>
-            <option value="WD101">WD101 - Web Development</option>
-            <!-- More courses can be dynamically populated -->
-        </select>
-    </div>
-
-    <!-- Teams List -->
-    <h5>Existing Teams</h5>
-    <ul class="list-group" id="teamList">
-        <!-- Dynamically added teams will go here -->
-        <li class="list-group-item">
-            <strong>Team Alpha</strong><br>
-            Members: Alice, Bob
-        </li>
-    </ul>
-</div>
+            <div class="tab-pane fade" id="teams" role="tabpanel">
+                <h4>Your Team(s)</h4>
+                <p class="text-muted">Below are the teams you are currently assigned to.</p>
+            
+                <ul class="list-group" id="studentTeamList">
+                    <!-- Team data will be inserted here dynamically -->
+                </ul>
+            </div>
+            
 
     
 <!-- Reviews Section -->
@@ -185,14 +166,12 @@
                 <p>Sortable table of student averages (converted to 100pt scale)</p>
                 <!-- Add filters, sort options later -->
             </div>
-
             <!--Logout Section-->
             <div class="tab-pane fade" id="logout" role="tabpanel">
                 <h4>Logout</h4>
                 <p>Are you sure you want to log out?</p>
-                <button class="btn btn-danger" id="confirmLogout">Yes, Log Me Out</button>
-            </div>
-            
+            <button class="btn btn-danger" id="confirmLogout">Yes, Log Me Out</button>
+        </div>
         </div>
     </div>
 
