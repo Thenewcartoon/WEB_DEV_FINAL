@@ -590,6 +590,104 @@ app.delete('/teams/:groupId', (req, res) => {
 
 
 
+
+app.post('/assessments', (req, res) => {
+    const { courseCode, name, startDate, endDate, questions } = req.body;
+
+    if (!courseCode || !name || !startDate || !endDate || !Array.isArray(questions) || questions.length === 0) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Step 1: Get CourseID
+    db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+        if (err || !courseRow) {
+            return res.status(404).json({ error: "Course not found." });
+        }
+
+        const courseId = courseRow.CourseID;
+
+        // Step 2: Insert into tblAssessments
+        db.run(
+            `INSERT INTO tblAssessments (CourseID, StartDate, EndDate, Name, Status, Type) VALUES (?, ?, ?, ?, 'Draft', 'Peer')`,
+            [courseId, startDate, endDate, name],
+            function (err) {
+                if (err) {
+                    console.error("Error inserting assessment:", err);
+                    return res.status(500).json({ error: "Failed to create assessment." });
+                }
+
+                const assessmentId = this.lastID;
+
+                // Step 3: Insert questions
+                const insertStmt = db.prepare(`
+                    INSERT INTO tblAssessmentQuestions (AssessmentID, QuestionType, Options, QuestionNarrative, HelperText)
+                    VALUES (?, ?, ?, ?, NULL)
+                `);
+
+                questions.forEach(q => {
+                    const optionsJSON = q.options ? JSON.stringify(q.options) : null;
+                    insertStmt.run(assessmentId, q.type, optionsJSON, q.text);
+                });
+
+                insertStmt.finalize();
+
+                return res.status(201).json({ message: "Assessment and questions saved successfully." });
+            }
+        );
+    });
+});
+
+
+
+
+
+app.get('/assessments/:userID', (req, res) => {
+    const userID = req.params.userID;
+
+    const query = `
+        SELECT a.AssessmentID, a.Name, c.CourseNumber, aq.QuestionID, aq.QuestionType, aq.QuestionNarrative, aq.Options
+        FROM tblAssessments a
+        JOIN tblCourses c ON a.CourseID = c.CourseID
+        LEFT JOIN tblAssessmentQuestions aq ON a.AssessmentID = aq.AssessmentID
+        WHERE c.UserID = ?
+        ORDER BY a.AssessmentID, aq.QuestionID
+    `;
+
+    db.all(query, [userID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching assessments:", err);
+            return res.status(500).json({ error: "Failed to fetch assessments." });
+        }
+
+        // Group questions under their assessment
+        const assessmentsMap = {};
+        rows.forEach(row => {
+            if (!assessmentsMap[row.AssessmentID]) {
+                assessmentsMap[row.AssessmentID] = {
+                    id: row.AssessmentID,
+                    title: row.Name,
+                    courseCode: row.CourseNumber,
+                    questions: []
+                };
+            }
+
+            if (row.QuestionID) {
+                const question = {
+                    id: row.QuestionID,
+                    type: row.QuestionType,
+                    text: row.QuestionNarrative,
+                    options: row.Options ? JSON.parse(row.Options) : []
+                };
+                assessmentsMap[row.AssessmentID].questions.push(question);
+            }
+        });
+
+        const assessments = Object.values(assessmentsMap);
+        res.status(200).json({ assessments });
+    });
+});
+
+
 app.get('/',(req,res,next) => {
     res.status(200).json({message:"Server is working"})
 })
