@@ -498,6 +498,68 @@ app.get('/student-courses', (req, res) => {
 });
 
 
+
+//route for displaying the team/teams a logged in student is in
+app.get('/student-teams', (req, res) => {
+    const { email } = req.query;
+
+    if (!email) {
+        return res.status(400).json({ error: "Missing student email." });
+    }
+
+    const query = `
+        SELECT 
+            g.GroupID,
+            g.GroupName,
+            c.CourseNumber,
+            c.CourseName,
+            u.Email AS MemberEmail,
+            u.FirstName || ' ' || u.LastName AS MemberName,
+            COALESCE(p.PhoneNumber, s.UserName) AS ContactInfo,
+            COALESCE(NULLIF(p.PhoneNumber, ''), s.SocialType) AS ContactType
+        FROM tblUsers current
+        JOIN tblGroupMembers gm_self ON current.UserID = gm_self.UserID
+        JOIN tblCourseGroups g ON gm_self.GroupID = g.GroupID
+        JOIN tblCourses c ON g.CourseID = c.CourseID
+        JOIN tblGroupMembers gm ON g.GroupID = gm.GroupID
+        JOIN tblUsers u ON gm.UserID = u.UserID
+        LEFT JOIN tblPhone p ON u.Email = p.UserEmail
+        LEFT JOIN tblSocials s ON u.Email = s.UserEmail
+        WHERE current.Email = ?
+        ORDER BY g.GroupID, u.FirstName
+    `;
+
+    db.all(query, [email], (err, rows) => {
+        if (err) {
+            console.error("Error fetching student teams with members:", err);
+            return res.status(500).json({ error: "Database error while fetching student teams." });
+        }
+
+        const grouped = {};
+
+        rows.forEach(row => {
+            if (!grouped[row.GroupID]) {
+                grouped[row.GroupID] = {
+                    groupName: row.GroupName,
+                    courseNumber: row.CourseNumber,
+                    courseName: row.CourseName,
+                    members: []
+                };
+            }
+
+            grouped[row.GroupID].members.push({
+                name: row.MemberName,
+                contact: row.ContactInfo || 'N/A',
+                type: row.ContactType || 'N/A'
+            });
+        });
+
+        const teams = Object.values(grouped);
+        return res.status(200).json({ teams });
+    });
+});
+
+
 //drop a course from student side
 app.post('/drop-course', (req, res) => {
     const { email, courseCode } = req.body;
