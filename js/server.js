@@ -366,6 +366,34 @@ app.get('/instructor-assessments/:userID', (req, res) => {
     });
 });
 
+//fetches questions for a review
+app.get('/assessment-questions/:assessmentID', (req, res) => {
+    const assessmentID = req.params.assessmentID;
+
+    const query = `
+        SELECT QuestionID, QuestionNarrative, QuestionType, Options
+        FROM tblAssessmentQuestions
+        WHERE AssessmentID = ?
+    `;
+
+    db.all(query, [assessmentID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching questions:", err);
+            return res.status(500).json({ error: "Failed to fetch questions." });
+        }
+
+        const questions = rows.map(q => ({
+            id: q.QuestionID,
+            text: q.QuestionNarrative,
+            type: q.QuestionType,
+            options: q.Options ? JSON.parse(q.Options) : []
+        }));
+
+        res.status(200).json({ questions });
+    });
+});
+
+
 
 // Get all active courses
 app.get('/courses', (req, res) => {

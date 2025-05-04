@@ -167,15 +167,40 @@ async function displaySavedReviews() {
             const viewBtn = document.createElement('button');
             viewBtn.className = 'btn btn-outline-secondary';
             viewBtn.textContent = 'View';
-            viewBtn.addEventListener('click', () => {
+
+            viewBtn.addEventListener('click', async () => {
                 const modelBody = document.getElementById('fullReviewModelBody');
-                modelBody.innerHTML = `
-                    <p><strong>Title:</strong> ${assessment.Name}</p>
-                    <p><strong>Course:</strong> ${assessment.CourseNumber}</p>
-                    <p class="text-muted">Full question view not implemented yet</p>
-                `;
-                const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
-                model.show();
+
+                try {
+                    const res = await fetch(`http://localhost:8000/assessment-questions/${assessment.AssessmentID}`);
+                    const data = await res.json();
+
+                    let html = `
+                        <p><strong>Title:</strong> ${assessment.Name}</p>
+                        <p><strong>Course:</strong> ${assessment.CourseNumber} (${assessment.CourseName})</p>
+                        <hr>
+                    `;
+
+                    data.questions.forEach((q, index) => {
+                        html += `<p><strong>Q${index + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`;
+                        if (q.options && q.options.length > 0) {
+                            html += `<ul>`;
+                            q.options.forEach(opt => {
+                                html += `<li>${opt}</li>`;
+                            });
+                            html += `</ul>`;
+                        }
+                    });
+
+                    modelBody.innerHTML = html;
+                    const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
+                    model.show();
+                } catch (err) {
+                    console.error("Failed to load review details:", err);
+                    modelBody.innerHTML = `<p class="text-danger">Error loading review details.</p>`;
+                    const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
+                    model.show();
+                }
             });
 
             btnGroup.appendChild(viewBtn);
@@ -192,6 +217,7 @@ async function displaySavedReviews() {
         list.appendChild(item);
     }
 }
+
 
 
 
