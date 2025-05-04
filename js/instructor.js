@@ -304,72 +304,61 @@ function populateScheduleDropdowns() {
 }
 
 //Function for displaying the assigned reviews created by an instructor
-function displayAssignedReviews() {
-    const list = document.getElementById('assignedReviewsList') //get ul element where the assigned reviews will be displayed
-    list.innerHTML = '' // Clear previous list
+async function displayAssignedReviews() {
+    const currentUser = getCurrentUser();
+    const list = document.getElementById('assignedReviewsList');
+    list.innerHTML = '';
 
-    if (assignments.length === 0) { //if there are no assignments, display a message
-        const item = document.createElement('li')
-        item.className = 'list-group-item'
-        item.textContent = 'No reviews have been assigned yet.'
-        list.appendChild(item)
+    if (!currentUser || !currentUser.UserID) {
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Error: No instructor found.';
+        list.appendChild(item);
         return;
     }
 
-    assignments.forEach(assign => { //loops through each assignment in the assignments array
-        const course = courses.find(c => c.code === assign.courseCode) //finds the correct course using courseCode
-        const review = reviews.find(r => r.id === assign.reviewId) //finds the correct review using reviewID
+    try {
+        const response = await fetch(`http://localhost:8000/scheduled-reviews/${currentUser.UserID}`);
+        const data = await response.json();
+        const assignments = data.scheduledReviews;
 
-        const item = document.createElement('li'); //create a new <li> for the current assignment
-        item.className = 'list-group-item d-flex justify-content-between align-items-start'
-        //set the inner html to show: the review title, the course code and name, and the due date
-        const content = document.createElement('div')
-        content.innerHTML = `
-            <strong>${review?.title || 'Unknown Review'}</strong><br>
-            Course: ${course?.code || 'Unknown'} - ${course?.name || ''}<br>
-            Due: ${assign.dueDate || 'No due date'}
-        `
+        if (assignments.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.textContent = 'No reviews have been assigned yet.';
+            list.appendChild(item);
+            return;
+        }
 
-        //button group
-        const btnGroup = document.createElement('div')
-        btnGroup.className = 'btn-group btn-group-sm'
+        assignments.forEach(assign => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-        //edit button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-outline-primary';
-        editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => {
-            // Refill form with assignment data
-            document.getElementById('scheduleCourseSelect').value = assign.courseCode
-            document.getElementById('scheduleReviewSelect').value = assign.reviewId
-            document.getElementById('reviewDueDate').value = assign.dueDate
+            const content = document.createElement('div');
+            content.innerHTML = `
+                <strong>${assign.ReviewTitle}</strong><br>
+                Course: ${assign.CourseNumber} - ${assign.CourseName}<br>
+                Due: ${assign.DueDate}
+            `;
 
-            // Remove original assignment from array
-            assignments = assignments.filter(a => a.id !== assign.id);
-            displayAssignedReviews(); // Re-render the list
-        })
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group btn-group-sm';
 
-        //delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-outline-danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => {
-            // Remove assignment from array
-            assignments = assignments.filter(a => a.id !== assign.id);
-            displayAssignedReviews(); // Re-render the list
+            // Add Edit and Delete buttons here if needed in the future
+            item.appendChild(content);
+            item.appendChild(btnGroup);
+            list.appendChild(item);
         });
 
-        // Add buttons to button group
-        btnGroup.appendChild(editBtn);
-        btnGroup.appendChild(deleteBtn);
-
-        // Add everything to the list item
-        item.appendChild(content);
-        item.appendChild(btnGroup);
-
-        list.appendChild(item); //add the <li> item to the list
-    });
+    } catch (err) {
+        console.error("Error loading assigned reviews:", err);
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Failed to load assigned reviews.';
+        list.appendChild(item);
+    }
 }
+
 
 
 function populateReviewResultsDropdowns() {
@@ -836,40 +825,59 @@ function initalizeInstructorPage() {
         
         //***************************************Schedule Reviews Tab*************************************************** */
         //event listener for assign review button
-        document.getElementById('assignReviewBtn').addEventListener('click', () => {
-            const courseCode = document.getElementById('scheduleCourseSelect').value //get selected course code from the drop down
-            const reviewId = document.getElementById('scheduleReviewSelect').value //gets selected review from dropdown
-            const dueDate = document.getElementById('reviewDueDate').value //gets due date from the date input
+        document.getElementById('assignReviewBtn').addEventListener('click', async () => {
+            const courseCode = document.getElementById('scheduleCourseSelect').value;
+            const assessmentID = document.getElementById('scheduleReviewSelect').value;
+            const dueDate = document.getElementById('reviewDueDate').value;
         
-            // Validation
-            if (!courseCode || !reviewId) { //makes sure course and review are selected
-                alert("Please select both a course and a review.");
+            // Validate form
+            if (!courseCode || !assessmentID || !dueDate) {
+                Swal.fire("Missing Info", "Please select course, review, and due date.", "warning");
                 return;
             }
         
-            // Store the assignment in the assignments array
-            assignments.push({
-                id: crypto.randomUUID(),  //unique ID for future use
-                courseCode,
-                reviewId,
+            // Get CourseID from selected course code (assumes courses[] is already loaded)
+            const course = courses.find(c => c.CourseNumber === courseCode);
+
+            if (!course) {
+                Swal.fire("Error", "Course not found.", "error");
+                return;
+            }
+        
+            const payload = {
+                assessmentID,
+                courseID: course.CourseID,
                 dueDate
-            })
-    
-            displayAssignedReviews() // calls displayAssignedReviews so the instructor can see what they have made already
+            };
         
-            // Reset form fields
-            document.getElementById('scheduleCourseSelect').selectedIndex = 0
-            document.getElementById('scheduleReviewSelect').selectedIndex = 0
-            document.getElementById('reviewDueDate').value = ''
+            try {
+                const response = await fetch('http://localhost:8000/assign-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
         
-            // Show a temporary success message
-            const alertBox = document.getElementById('assignmentSuccessAlert')
-            alertBox.classList.remove('d-none')
-            setTimeout(() => {
-                alertBox.classList.add('d-none') //hides message after 3 seconds
-            }, 3000);
-            
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+        
+                Swal.fire("Success", "Review assigned!", "success");
+        
+                // Reset form
+                document.getElementById('scheduleCourseSelect').selectedIndex = 0;
+                document.getElementById('scheduleReviewSelect').selectedIndex = 0;
+                document.getElementById('reviewDueDate').value = '';
+        
+                // Refresh assigned list
+                displayAssignedReviews(); // If you build this later
+        
+            } catch (err) {
+                console.error("Error assigning review:", err);
+                Swal.fire("Error", err.message, "error");
+            }
         });
+        
+
+        
         
     
         
@@ -1116,6 +1124,39 @@ function initalizeInstructorPage() {
                 fetchAndDisplayTeamsForCourse(selectedCourseCode);
             }
         });
+
+        // --- 🆕 New scheduleCourseSelect listener ---
+        document.getElementById('scheduleCourseSelect').addEventListener('change', async function () {
+            const selectedCourse = this.value;
+            const reviewSelect = document.getElementById('scheduleReviewSelect');
+    
+            reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+
+            if (!selectedCourse) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = 'No reviews found';
+                    reviewSelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(review => {
+                    const option = document.createElement('option');
+                    option.value = review.AssessmentID;
+                    option.textContent = review.Name;
+                    reviewSelect.appendChild(option);
+                });
+
+            } catch (err) {
+                console.error("Error loading reviews:", err);
+        }
+        });
         //********************************************End of Teams tab************************************************************************** */
         //-----------------------------------------------------------------------------------------------------------------------------------------
     
@@ -1207,6 +1248,11 @@ if (createCourseBtn) {
         document.getElementById('reviews-tab').addEventListener('click', () => {
             displaySavedReviews();
         });
+
+        document.getElementById('schedule-tab').addEventListener('click', () => {
+            displayAssignedReviews();
+        });
+        
     
      //***************************************************End of Courses Tab********************************************* */
 };

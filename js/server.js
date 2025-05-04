@@ -387,6 +387,78 @@ app.delete('/delete-assessment/:assessmentID', (req, res) => {
     });
 });
 
+//route for sending reviews to tblScheduledReviews
+app.post('/assign-review', (req, res) => {
+    const { assessmentID, courseID, dueDate } = req.body;
+
+    if (!assessmentID || !courseID || !dueDate) {
+        return res.status(400).json({ error: "Missing data" });
+    }
+
+    const startDate = new Date().toISOString().split("T")[0];
+    const endDate = dueDate; // use dueDate as endDate for now
+
+    db.run(`
+        INSERT INTO tblScheduledReviews (AssessmentID, CourseID, StartDate, EndDate)
+        VALUES (?, ?, ?, ?)
+    `, [assessmentID, courseID, startDate, endDate], function (err) {
+        if (err) {
+            console.error("Error assigning review:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+
+        return res.status(201).json({ message: "Review assigned successfully" });
+    });
+});
+
+
+//route for displaying already assigned reviews to the instructor
+app.get('/scheduled-reviews/:userID', (req, res) => {
+    const userID = req.params.userID;
+
+    const query = `
+        SELECT sr.ScheduleID, sr.AssessmentID, sr.StartDate, sr.EndDate AS DueDate,
+               a.Name AS ReviewTitle,
+               c.CourseNumber, c.CourseName
+        FROM tblScheduledReviews sr
+        JOIN tblAssessments a ON sr.AssessmentID = a.AssessmentID
+        JOIN tblCourses c ON sr.CourseID = c.CourseID
+        WHERE c.UserID = ?
+        ORDER BY sr.EndDate DESC
+    `;
+
+    db.all(query, [userID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching scheduled reviews:", err);
+            return res.status(500).json({ error: "Database error while fetching scheduled reviews." });
+        }
+
+        res.status(200).json({ scheduledReviews: rows });
+    });
+});
+
+
+//route for populating the Review Select dropdown on schedule reviews tab
+app.get('/reviews-by-course/:courseCode', (req, res) => {
+    const courseCode = req.params.courseCode;
+
+    const query = `
+        SELECT a.AssessmentID, a.Name
+        FROM tblAssessments a
+        JOIN tblCourses c ON a.CourseID = c.CourseID
+        WHERE c.CourseNumber = ?
+        ORDER BY a.AssessmentID DESC
+    `;
+
+    db.all(query, [courseCode], (err, rows) => {
+        if (err) {
+            console.error("Failed to fetch reviews:", err);
+            return res.status(500).json({ error: "Error fetching reviews." });
+        }
+
+        res.json(rows);
+    });
+});
 
 
 
