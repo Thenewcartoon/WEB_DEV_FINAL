@@ -396,20 +396,41 @@ app.post('/assign-review', (req, res) => {
     }
 
     const startDate = new Date().toISOString().split("T")[0];
-    const endDate = dueDate; // use dueDate as endDate for now
+    const endDate = dueDate;
 
-    db.run(`
-        INSERT INTO tblScheduledReviews (AssessmentID, CourseID, StartDate, EndDate)
-        VALUES (?, ?, ?, ?)
-    `, [assessmentID, courseID, startDate, endDate], function (err) {
+    // First, check for duplicates
+    const checkQuery = `
+        SELECT * FROM tblScheduledReviews
+        WHERE AssessmentID = ? AND CourseID = ?
+    `;
+
+    db.get(checkQuery, [assessmentID, courseID], (err, row) => {
         if (err) {
-            console.error("Error assigning review:", err);
+            console.error("Error checking for duplicates:", err);
             return res.status(500).json({ error: "Database error" });
         }
 
-        return res.status(201).json({ message: "Review assigned successfully" });
+        if (row) {
+            return res.status(409).json({ error: "This review is already scheduled for this course." });
+        }
+
+        // Proceed to insert if no duplicate
+        const insertQuery = `
+            INSERT INTO tblScheduledReviews (AssessmentID, CourseID, StartDate, EndDate)
+            VALUES (?, ?, ?, ?)
+        `;
+
+        db.run(insertQuery, [assessmentID, courseID, startDate, endDate], function (err) {
+            if (err) {
+                console.error("Error assigning review:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+
+            return res.status(201).json({ message: "Review assigned successfully" });
+        });
     });
 });
+
 
 
 //route for displaying already assigned reviews to the instructor
@@ -436,6 +457,8 @@ app.get('/scheduled-reviews/:userID', (req, res) => {
         res.status(200).json({ scheduledReviews: rows });
     });
 });
+
+
 
 
 //route for populating the Review Select dropdown on schedule reviews tab
