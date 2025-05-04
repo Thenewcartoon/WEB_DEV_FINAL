@@ -333,22 +333,55 @@ async function displayAssignedReviews() {
         assignments.forEach(assign => {
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start';
-
+        
             const content = document.createElement('div');
             content.innerHTML = `
                 <strong>${assign.ReviewTitle}</strong><br>
                 Course: ${assign.CourseNumber} - ${assign.CourseName}<br>
                 Due: ${assign.DueDate}
             `;
-
+        
             const btnGroup = document.createElement('div');
             btnGroup.className = 'btn-group btn-group-sm';
-
-            // Add Edit and Delete buttons here if needed in the future
+        
+            // ====== DELETE BUTTON ======
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                const confirm = await Swal.fire({
+                    title: "Are you sure?",
+                    text: "This will permanently delete the assignment.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!"
+                });
+        
+                if (!confirm.isConfirmed) return;
+        
+                try {
+                    const response = await fetch(`http://localhost:8000/delete-scheduled-review/${assign.ScheduleID}`, {
+                        method: 'DELETE'
+                    });
+        
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error);
+        
+                    Swal.fire("Deleted!", "Scheduled review has been removed.", "success");
+                    displayAssignedReviews(); // Refresh the list
+                } catch (err) {
+                    console.error("Failed to delete scheduled review:", err);
+                    Swal.fire("Error", err.message, "error");
+                }
+            });
+        
+            // ====== APPEND BUTTON AND RENDER ======
+            btnGroup.appendChild(deleteBtn);
             item.appendChild(content);
             item.appendChild(btnGroup);
             list.appendChild(item);
         });
+        
 
     } catch (err) {
         console.error("Error loading assigned reviews:", err);

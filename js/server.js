@@ -458,7 +458,23 @@ app.get('/scheduled-reviews/:userID', (req, res) => {
     });
 });
 
+//route for deleting assigned reviews
+app.delete('/delete-scheduled-review/:scheduleID', (req, res) => {
+    const scheduleID = req.params.scheduleID;
 
+    if (!scheduleID) {
+        return res.status(400).json({ error: "Missing ScheduleID" });
+    }
+
+    db.run(`DELETE FROM tblScheduledReviews WHERE ScheduleID = ?`, [scheduleID], function (err) {
+        if (err) {
+            console.error("Failed to delete scheduled review:", err);
+            return res.status(500).json({ error: "Database error while deleting." });
+        }
+
+        return res.status(200).json({ message: "Scheduled review deleted successfully." });
+    });
+});
 
 
 //route for populating the Review Select dropdown on schedule reviews tab
