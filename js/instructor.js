@@ -1,4 +1,5 @@
 
+
 // instructor.js
 
 //global variables
@@ -406,6 +407,7 @@ function populateReportCourseDropdown() {
 }
 
 
+
 function getCurrentUser() {
     const userStr = localStorage.getItem('currentUser');
     return userStr ? JSON.parse(userStr) : null;
@@ -431,6 +433,7 @@ async function fetchAndDisplayCourses() {
 
         const data = await response.json();
         const coursesFromDB = data.courses;
+
         courses = coursesFromDB;
 
         // Filter courses by instructor's email
@@ -444,6 +447,7 @@ async function fetchAndDisplayCourses() {
             newRow.innerHTML = `
                 <td>${course.CourseName}</td>
                 <td>${course.CourseNumber}</td>
+
                 <td>${course.CourseSection}</td>
                 <td>${course.JoinCode}</td>
                 <td>
@@ -451,6 +455,7 @@ async function fetchAndDisplayCourses() {
                     <button class="btn btn-sm btn-outline-danger" type="button">Delete</button>
                 </td>
             `;
+
 
             // Set up the View Students button
             const viewButton = newRow.querySelector('.btn-outline-info');
@@ -680,6 +685,7 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
         .catch(err => {
             console.error("Error loading teams:", err);
         });
+
 }
 
 
@@ -716,6 +722,7 @@ function initalizeInstructorPage() {
         refreshAllCourseDropdowns().then(() => {
             setupCourseStudentListener();
         });
+
     
         
         //click event for the logout button on the instructor page
@@ -1072,8 +1079,10 @@ if (createCourseBtn) {
         const courseName = document.getElementById('courseName').value.trim();
         const courseCode = document.getElementById('courseCode').value.trim();
         const courseSection = document.getElementById('courseSection').value.trim();
+
         const currentUser = getCurrentUser();
         console.log("DEBUG currentUser:", currentUser);
+
 
         if (!courseName || !courseCode || !courseSection) {
             alert("Please fill in all fields");
@@ -1091,8 +1100,10 @@ if (createCourseBtn) {
                     courseName,
                     courseCode,
                     courseSection,
+
                     joinCode: joinCodeForThisCourse,
                     userID: currentUser.UserID // Assuming you have the user ID from the logged-in user
+
                 })
             });
 
@@ -1111,14 +1122,18 @@ if (createCourseBtn) {
                 title: 'Success!',
                 text: 'Course created successfully.',
                 icon: 'success'
+
             }).then(async() => {
+
                 // Clear fields manually now (no form.reset())
                 document.getElementById('courseName').value = '';
                 document.getElementById('courseCode').value = '';
                 document.getElementById('courseSection').value = '';
                 joinCodeDisplay.classList.add('d-none');
                 currentJoinCode = '';
+
                 await refreshAllCourseDropdowns();
+
 
             });
 
@@ -1137,7 +1152,9 @@ if (createCourseBtn) {
         populateReportCourseDropdown()
     
      //***************************************************End of Courses Tab********************************************* */
+
 };
+
 
 //***********************************END OF FUNCTIONS************************************************************************ */
 

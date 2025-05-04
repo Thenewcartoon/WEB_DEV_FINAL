@@ -1,0 +1,4 @@
+node_modules/      # Ignores ALL node_modules folders in the repo, including js/node_modules/
+*.node             # Ignores all .node files (native compiled modules like bcrypt_lib.node)
+*.db               # Ignores any SQLite database files like Peer_Assessment.db
+*.sqbpro           # Ignores project files from SQLite Browser
