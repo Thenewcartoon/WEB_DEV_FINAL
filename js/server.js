@@ -344,6 +344,52 @@ app.post('/create-assessment', (req, res) => {
     });
 });
 
+//allows user to edit a saved review
+app.get('/assessment-details/:assessmentID', (req, res) => {
+    const id = req.params.assessmentID;
+
+    db.get(`SELECT Name FROM tblAssessments WHERE AssessmentID = ?`, [id], (err, assessment) => {
+        if (err || !assessment) {
+            return res.status(404).json({ error: "Assessment not found" });
+        }
+
+        db.all(`SELECT QuestionType, Options, QuestionNarrative FROM tblAssessmentQuestions WHERE AssessmentID = ?`, [id], (err, questions) => {
+            if (err) {
+                return res.status(500).json({ error: "Failed to load questions" });
+            }
+
+            const formattedQuestions = questions.map(q => ({
+                type: q.QuestionType,
+                text: q.QuestionNarrative,
+                options: q.Options ? JSON.parse(q.Options) : []
+            }));
+
+            res.status(200).json({
+                title: assessment.Name,
+                questions: formattedQuestions
+            });
+        });
+    });
+});
+
+//delete a saved review from database
+app.delete('/delete-assessment/:assessmentID', (req, res) => {
+    const id = req.params.assessmentID;
+
+    db.run(`DELETE FROM tblAssessmentQuestions WHERE AssessmentID = ?`, [id], function (err) {
+        if (err) return res.status(500).json({ error: "Failed to delete questions" });
+
+        db.run(`DELETE FROM tblAssessments WHERE AssessmentID = ?`, [id], function (err) {
+            if (err) return res.status(500).json({ error: "Failed to delete assessment" });
+
+            res.status(200).json({ message: "Assessment deleted" });
+        });
+    });
+});
+
+
+
+
 // returns assesssments that belong to logged in instructor
 app.get('/instructor-assessments/:userID', (req, res) => {
     const userID = req.params.userID;

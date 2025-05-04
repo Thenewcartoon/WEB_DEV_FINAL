@@ -151,7 +151,7 @@ async function displaySavedReviews() {
             return;
         }
 
-        assessments.forEach(assessment => {
+        for (const assessment of assessments) {
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
@@ -164,50 +164,104 @@ async function displaySavedReviews() {
             const btnGroup = document.createElement('div');
             btnGroup.className = 'btn-group btn-group-sm';
 
+            // ---------------- View Button ------------------
             const viewBtn = document.createElement('button');
             viewBtn.className = 'btn btn-outline-secondary';
             viewBtn.textContent = 'View';
-
             viewBtn.addEventListener('click', async () => {
-                const modelBody = document.getElementById('fullReviewModelBody');
-
                 try {
-                    const res = await fetch(`http://localhost:8000/assessment-questions/${assessment.AssessmentID}`);
+                    const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
                     const data = await res.json();
 
+                    const modelBody = document.getElementById('fullReviewModelBody');
                     let html = `
-                        <p><strong>Title:</strong> ${assessment.Name}</p>
-                        <p><strong>Course:</strong> ${assessment.CourseNumber} (${assessment.CourseName})</p>
+                        <p><strong>Title:</strong> ${data.title}</p>
+                        <p><strong>Course:</strong> ${assessment.CourseNumber}</p>
                         <hr>
                     `;
-
-                    data.questions.forEach((q, index) => {
-                        html += `<p><strong>Q${index + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`;
-                        if (q.options && q.options.length > 0) {
-                            html += `<ul>`;
-                            q.options.forEach(opt => {
-                                html += `<li>${opt}</li>`;
-                            });
-                            html += `</ul>`;
+                    data.questions.forEach((q, i) => {
+                        html += `<p><strong>Q${i + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`;
+                        if (q.options?.length > 0) {
+                            html += '<ul>';
+                            q.options.forEach(opt => html += `<li>${opt}</li>`);
+                            html += '</ul>';
                         }
                     });
 
                     modelBody.innerHTML = html;
-                    const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
-                    model.show();
+                    const modal = new bootstrap.Modal(document.getElementById('fullReviewModel'));
+                    modal.show();
                 } catch (err) {
-                    console.error("Failed to load review details:", err);
-                    modelBody.innerHTML = `<p class="text-danger">Error loading review details.</p>`;
-                    const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
-                    model.show();
+                    console.error('Error loading review details:', err);
+                    Swal.fire("Error", "Could not load full review details.", "error");
+                }
+            });
+
+            // ---------------- Edit Button ------------------
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-outline-primary';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
+                    const data = await res.json();
+
+                    // Load review data into form
+                    document.getElementById('reviewTitle').value = data.title;
+                    document.getElementById('reviewCourseSelect').value = assessment.CourseNumber;
+
+                    questions = data.questions; // replace global questions array
+                    document.getElementById('reviewQuestionList').innerHTML = '';
+                    questions.forEach(renderQuestionPreview);
+
+                    // Delete assessment from DB so it doesn’t duplicate on re-save
+                    await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
+                        method: 'DELETE'
+                    });
+
+                    await displaySavedReviews(); // Refresh list
+
+                } catch (err) {
+                    console.error('Error editing review:', err);
+                    Swal.fire("Error", "Could not load or delete the review for editing.", "error");
+                }
+            });
+
+            // ---------------- Delete Button ------------------
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                const confirmed = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'This will permanently delete the review.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it!'
+                });
+
+                if (confirmed.isConfirmed) {
+                    try {
+                        await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
+                            method: 'DELETE'
+                        });
+                        Swal.fire("Deleted!", "The review has been deleted.", "success");
+                        await displaySavedReviews();
+                    } catch (err) {
+                        console.error('Error deleting review:', err);
+                        Swal.fire("Error", "Failed to delete the review.", "error");
+                    }
                 }
             });
 
             btnGroup.appendChild(viewBtn);
+            btnGroup.appendChild(editBtn);
+            btnGroup.appendChild(deleteBtn);
+
             item.appendChild(content);
             item.appendChild(btnGroup);
             list.appendChild(item);
-        });
+        }
 
     } catch (err) {
         console.error("Error fetching assessments:", err);
