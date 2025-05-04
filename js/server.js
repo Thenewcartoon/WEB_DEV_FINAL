@@ -293,6 +293,79 @@ app.post('/teams', (req, res) => {
 
 
 
+//route for creating reviews
+app.post('/create-assessment', (req, res) => {
+    const { courseCode, title, questions } = req.body;
+
+    if (!courseCode || !title || !Array.isArray(questions) || questions.length === 0) {
+        return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Default dates can be used or updated later
+    const startDate = new Date().toISOString().split("T")[0];
+    const endDate = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]; // +7 days
+
+    // Step 1: Get CourseID
+    db.get(`SELECT CourseID FROM tblCourses WHERE CourseNumber = ?`, [courseCode], (err, courseRow) => {
+        if (err || !courseRow) {
+            console.error("Course lookup failed:", err);
+            return res.status(500).json({ error: "Course not found." });
+        }
+
+        const courseID = courseRow.CourseID;
+
+        // Step 2: Insert into tblAssessments
+        db.run(`
+            INSERT INTO tblAssessments (CourseID, StartDate, EndDate, Name, Status, Type)
+            VALUES (?, ?, ?, ?, 'Active', 'Peer')
+        `, [courseID, startDate, endDate, title], function (err) {
+            if (err) {
+                console.error("Assessment insert failed:", err);
+                return res.status(500).json({ error: "Failed to create assessment." });
+            }
+
+            const assessmentID = this.lastID;
+
+            // Step 3: Insert each question
+            const stmt = db.prepare(`
+                INSERT INTO tblAssessmentQuestions 
+                (AssessmentID, QuestionType, Options, QuestionNarrative, HelperText)
+                VALUES (?, ?, ?, ?, ?)
+            `);
+
+            questions.forEach(q => {
+                const optionsJSON = q.options.length > 0 ? JSON.stringify(q.options) : null;
+                stmt.run(assessmentID, q.type, optionsJSON, q.text, '');
+            });
+
+            stmt.finalize();
+            return res.status(201).json({ message: "Assessment and questions saved successfully." });
+        });
+    });
+});
+
+// returns assesssments that belong to logged in instructor
+app.get('/instructor-assessments/:userID', (req, res) => {
+    const userID = req.params.userID;
+
+    const query = `
+        SELECT a.AssessmentID, a.Name, c.CourseNumber, c.CourseName
+        FROM tblAssessments a
+        JOIN tblCourses c ON a.CourseID = c.CourseID
+        WHERE c.UserID = ?
+        ORDER BY a.AssessmentID DESC
+    `;
+
+    db.all(query, [userID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching assessments:", err);
+            return res.status(500).json({ error: "Database error while fetching assessments." });
+        }
+
+        res.status(200).json({ assessments: rows });
+    });
+});
+
 
 // Get all active courses
 app.get('/courses', (req, res) => {

@@ -124,102 +124,75 @@ function populateReviewCourseDropdown() {
 
 
 //******************Function for displaying Saved Reviews**************///
-function displaySavedReviews() {
+async function displaySavedReviews() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const list = document.getElementById('savedReviewsList');
     list.innerHTML = ''; // Clear old list
-    //show a placeholder message if no reviews exist
-    if (reviews.length === 0) {
+
+    if (!currentUser || !currentUser.UserID) {
         const item = document.createElement('li');
         item.className = 'list-group-item';
-        item.textContent = 'No reviews saved yet.';
+        item.textContent = 'Error: No user found.';
         list.appendChild(item);
         return;
     }
-    //loop through all saved reviews and display them
-    reviews.forEach(review => {
-        const item = document.createElement('li'); //create the list item container
-        item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-        const content = document.createElement('div'); //build the left-side content: title course and question count
-        content.innerHTML = `
-            <strong>${review.title}</strong><br>
-            Course: ${review.courseCode}<br>
-            Questions: ${review.questions.length}
-        `;
+    try {
+        const response = await fetch(`http://localhost:8000/instructor-assessments/${currentUser.UserID}`);
+        const data = await response.json();
 
-        const btnGroup = document.createElement('div'); //create button group: Edit, Delete, View
-        btnGroup.className = 'btn-group btn-group-sm';
+        const assessments = data.assessments;
 
-        // EDIT Button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-outline-primary';
-        editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => {
-            // Load review data back into form
-            document.getElementById('reviewTitle').value = review.title;
-            document.getElementById('reviewCourseSelect').value = review.courseCode;
+        if (!assessments || assessments.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.textContent = 'No reviews saved yet.';
+            list.appendChild(item);
+            return;
+        }
 
-            // Set questions[] to this review’s questions
-            questions = [...review.questions];
+        assessments.forEach(assessment => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-            // Re-render all questions into the preview
-            document.getElementById('reviewQuestionList').innerHTML = '';
-            questions.forEach(q => renderQuestionPreview(q));
-
-            // Remove review from the list so it's not duplicated on save
-            reviews = reviews.filter(r => r.id !== review.id);
-            renderSavedReviews();
-        });
-
-        // DELETE Button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-outline-danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => { //click event for delete button
-            // Remove from array and re-render list
-            reviews = reviews.filter(r => r.id !== review.id);
-            displaySavedReviews();
-        });
-
-        //View button
-        const viewBtn = document.createElement('button');
-        viewBtn.className = 'btn btn-outline-secondary';
-        viewBtn.textContent = 'View';
-        viewBtn.addEventListener('click', () => {
-            const modelBody = document.getElementById('fullReviewModelBody');
-            //construct model content: title, course, and all questions
-            let html = `
-                <p><strong>Title:</strong> ${review.title}</p>
-                <p><strong>Course:</strong> ${review.courseCode}</p>
-                <hr>
+            const content = document.createElement('div');
+            content.innerHTML = `
+                <strong>${assessment.Name}</strong><br>
+                Course: ${assessment.CourseNumber} (${assessment.CourseName})
             `;
-            //loop through each question in the review and display it
-            review.questions.forEach((q, index) => {
-                html += `<p><strong>Q${index + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`; //add question number, question text, and question type 
-                if (q.options && q.options.length > 0) { //if question has answer options, display them as list
-                    html += `<ul>` //starts list
-                    q.options.forEach(opt => {
-                        html += `<li>${opt}</li>` //displays each option
-                    });
-                    html += `</ul>` //end of list
-                }
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group btn-group-sm';
+
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn btn-outline-secondary';
+            viewBtn.textContent = 'View';
+            viewBtn.addEventListener('click', () => {
+                const modelBody = document.getElementById('fullReviewModelBody');
+                modelBody.innerHTML = `
+                    <p><strong>Title:</strong> ${assessment.Name}</p>
+                    <p><strong>Course:</strong> ${assessment.CourseNumber}</p>
+                    <p class="text-muted">Full question view not implemented yet</p>
+                `;
+                const model = new bootstrap.Modal(document.getElementById('fullReviewModel'));
+                model.show();
             });
 
-            modelBody.innerHTML = html;
-            //show the model
-            const model = new bootstrap.Model(document.getElementById('fullReviewModel'));
-            model.show();
+            btnGroup.appendChild(viewBtn);
+            item.appendChild(content);
+            item.appendChild(btnGroup);
+            list.appendChild(item);
         });
-        //adds the three buttons to the btnGroup container
-        btnGroup.appendChild(viewBtn)
-        btnGroup.appendChild(editBtn)
-        btnGroup.appendChild(deleteBtn)
 
-        item.appendChild(content) //item is the <li> representing one saved review. content contains the review title, course and question count
-        item.appendChild(btnGroup) //btnGroup holds the 3 buttons
-        list.appendChild(item) // appends the entire list to the outer <ul> (#savedReviewsList) which contains all the reviews
-    }) 
+    } catch (err) {
+        console.error("Error fetching assessments:", err);
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Failed to load reviews.';
+        list.appendChild(item);
+    }
 }
+
 
 
 //*************Function for filling in the dropdowns on the schedule tab***************** */
@@ -939,35 +912,49 @@ function initalizeInstructorPage() {
             const course = document.getElementById('reviewCourseSelect').value;
         
             if (!title || !course) {
-                alert("Please enter a review title and select a course.");
+                Swal.fire("Missing Info", "Please enter a review title and select a course.", "warning");
                 return;
             }
         
             if (questions.length === 0) {
-                alert("Please add at least one question to the review.");
+                Swal.fire("No Questions", "Please add at least one question to the review.", "warning");
                 return;
             }
         
             const review = {
-                id: crypto.randomUUID(),
                 title,
                 courseCode: course,
-                questions: [...questions] // copy the questions array
+                questions: [...questions] // Make a shallow copy
             };
         
-            reviews.push(review);
-            populateScheduleDropdowns()
-            populateReviewResultsDropdowns() //call populareReviewResultsDropdowns to fill in select boxes on review results tab
+            fetch('http://localhost:8000/create-assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(review)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.error) throw new Error(result.error);
         
-            // Reset the form and question list
-            document.getElementById('reviewTitle').value = ''
-            document.getElementById('reviewCourseSelect').selectedIndex = 0
-            document.getElementById('reviewQuestionList').innerHTML = ''
-            questions = [];
+                Swal.fire("Success", "Review saved successfully!", "success");
         
-            alert("Review saved successfully!")
-            displaySavedReviews()
+                // Refresh dropdowns
+                populateScheduleDropdowns();
+                populateReviewResultsDropdowns();
+                displaySavedReviews();
+        
+                // Clear form and local questions array
+                document.getElementById('reviewTitle').value = '';
+                document.getElementById('reviewCourseSelect').selectedIndex = 0;
+                document.getElementById('reviewQuestionList').innerHTML = '';
+                questions = [];
+            })
+            .catch(err => {
+                console.error("Failed to save review:", err);
+                Swal.fire("Error", err.message, "error");
+            });
         });
+        
         //***********************************End of Reviews Tab********************************************************************************/
         //---------------------------------------------------------------------------------------------------------------------------
         
@@ -1135,6 +1122,11 @@ if (createCourseBtn) {
 
         
         populateReportCourseDropdown()
+
+        // Show saved reviews when instructor clicks the Reviews tab
+        document.getElementById('reviews-tab').addEventListener('click', () => {
+            displaySavedReviews();
+        });
     
      //***************************************************End of Courses Tab********************************************* */
 };
