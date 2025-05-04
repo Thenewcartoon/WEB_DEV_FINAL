@@ -3,18 +3,11 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Thenewcartoon/WEB_DEV_FINAL.git"
-  },
-  "author": "Gavin Bright",
+  "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Thenewcartoon/WEB_DEV_FINAL/issues"
-  },
-  "homepage": "https://github.com/Thenewcartoon/WEB_DEV_FINAL#readme",
   "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",

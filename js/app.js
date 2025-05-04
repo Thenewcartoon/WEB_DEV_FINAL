@@ -381,8 +381,9 @@ async function loginUser(username, password) {
         credentials: 'include'
     });
     
-    const data = await response.json();
+    userData = await response.json();
     
+    console.log(userData)
     if (response.ok) {
         //Just simple debugging tips for now.
         console.log("Login successful:", data.message);
@@ -401,7 +402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     })
     
     userData = await response.json()
-
+  
     if(response.ok){
         localStorage.setItem('currentUser', JSON.stringify(userData.user));
 

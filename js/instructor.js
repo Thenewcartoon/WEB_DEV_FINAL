@@ -525,6 +525,7 @@ async function populateTeamCourseDropdown() {
     // ⛳️ Get instructor ID from localStorage or session
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const UserId = currentUser?.UserID;
+    // const UserId = userData.user.UserID
 
     if (!UserId) {
         console.error("Instructor not logged in or UserID missing.");
@@ -1088,7 +1089,7 @@ if (createCourseBtn) {
             alert("Please fill in all fields");
             return;
         }
-
+        console.log(currentUser.UserID)
         const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
 
         try {
@@ -1100,7 +1101,6 @@ if (createCourseBtn) {
                     courseName,
                     courseCode,
                     courseSection,
-
                     joinCode: joinCodeForThisCourse,
                     userID: currentUser.UserID // Assuming you have the user ID from the logged-in user
 

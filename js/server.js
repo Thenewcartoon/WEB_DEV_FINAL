@@ -166,42 +166,6 @@ app.post('/register', async (req, res) => {
     }
 });
 
-
-// Create a new course
-app.post('/createCourse', (req, res) => {
-    const { courseName, courseCode, courseSection, joinCode } = req.body;
-
-    if (!courseName || !courseCode || !courseSection || !joinCode) {
-        return res.status(400).json({ error: "Missing required fields to create course." });
-    }
-
-    const checkQuery = 'SELECT * FROM tblCourses WHERE CourseNumber = ?'; //CourseNumber is the same thing as CourseCode
-    db.get(checkQuery, [courseCode], (err, row) => {
-        if (err) {
-            console.error("Error checking for existing course:", err);
-            return res.status(500).json({ error: "Database error while checking for course." });
-        }
-
-        if (row) {
-            return res.status(409).json({ error: "Course number already exists." });
-        }
-
-        const insertQuery = `
-            INSERT INTO tblCourses (CourseNumber, CourseName, CourseSection, JoinCode)
-            VALUES (?, ?, ?, ?)
-        `;
-
-        db.run(insertQuery, [courseCode, courseName, courseSection, joinCode], function (err) {
-            if (err) {
-                console.error("Error inserting course:", err);
-                return res.status(500).json({ error: "Database error during course insertion." });
-            }
-            return res.status(201).json({ message: "Course created successfully." });
-        });
-    });
-});
-
-
 // Get all active courses
 app.get('/courses', (req, res) => {
     const query = `
@@ -220,26 +184,26 @@ app.get('/courses', (req, res) => {
 });
 
 
-// Get students in a specific course
-app.get('/courses/:courseCode/students', (req, res) => {
-    const { courseCode } = req.params;
+// // Get students in a specific course
+// app.get('/courses/:courseCode/students', (req, res) => {
+//     const { courseCode } = req.params;
 
-    const query = `
-        SELECT u.FirstName, u.LastName, u.Email
-        FROM tblEnrollments e
-        JOIN tblUsers u ON e.StudentEmail = u.Email
-        WHERE e.CourseCode = ?
-    `;
+//     const query = `
+//         SELECT u.FirstName, u.LastName, u.Email
+//         FROM tblEnrollments e
+//         JOIN tblUsers u ON e.StudentEmail = u.Email
+//         WHERE e.CourseCode = ?
+//     `;
 
-    db.all(query, [courseCode], (err, rows) => {
-        if (err) {
-            console.error("Error fetching students:", err);
-            return res.status(500).json({ error: "Database error while fetching students." });
-        }
+//     db.all(query, [courseCode], (err, rows) => {
+//         if (err) {
+//             console.error("Error fetching students:", err);
+//             return res.status(500).json({ error: "Database error while fetching students." });
+//         }
 
-        return res.status(200).json({ students: rows });
-    });
-});
+//         return res.status(200).json({ students: rows });
+//     });
+// });
 
 
 // Delete a course
@@ -303,7 +267,7 @@ app.get('/session/verify', (req, res, next) =>{
         return res.status(200).json({
             status: "valid",
             user: {
-                UserId: row.UserId,
+                UserID: row.UserID,
                 FirstName: row.FirstName,
                 LastName: row.LastName,
                 Email: row.Email,
@@ -485,25 +449,6 @@ app.post('/teams', (req, res) => {
     });
 });
 
-
-
-
-// Get all active courses
-app.get('/courses', (req, res) => {
-    const query = `
-        SELECT CourseNumber, CourseName, CourseSection, JoinCode
-        FROM tblCourses
-    `;
-
-    db.all(query, [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching courses:", err); // <--- check your backend terminal for this
-            return res.status(500).json({ error: "Database error while fetching courses." });
-        }
-
-        return res.status(200).json({ courses: rows });
-    });
-});
 
 
 // Get all courses for a specific instructor
@@ -727,35 +672,6 @@ app.post('/drop-course', (req, res) => {
         });
     });
 });
-
-
-
-
-
-
-// Delete a course
-app.delete('/courses/:courseCode', (req, res) => {
-    const { courseCode } = req.params;
-
-    const query = `
-        DELETE FROM tblCourses
-        WHERE CourseNumber = ?
-    `;
-
-    db.run(query, [courseCode], function(err) {
-        if (err) {
-            console.error("Error deleting course:", err);
-            return res.status(500).json({ error: "Database error while deleting course." });
-        }
-
-        if (this.changes === 0) {
-            return res.status(404).json({ error: "Course not found." });
-        }
-
-        return res.status(200).json({ message: "Course deleted successfully." });
-    });
-});
-
 
 
 app.delete('/teams/:groupId', (req, res) => {
