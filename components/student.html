@@ -17,12 +17,12 @@
             <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
-        </li>
+            <button class="nav-link" id="logout-tab" data-bs-toggle="tab" data-bs-target="#logout" type="button" role="tab">Logout</button>
+        </li>  
     </ul>
     
     <!-- Tab Content -->
-    ```
+    <div class="tab-content mt-4" id="studentTabContent">
     
     <!-- Courses Section -->
     
@@ -57,12 +57,9 @@
             <!-- Course rows will be added dynamically here -->
         </tbody>
     </table>
-    ```
-    
-    </div>
+</div>
     
     <!-- Teams Section -->
-    
     <div class="tab-pane fade" id="teams" role="tabpanel">
         <h4>Your Team(s)</h4>
         <p class="text-muted">Below are the teams you are currently assigned to.</p>
@@ -79,6 +76,12 @@
             <!-- Reviews will appear here with "View / Answer" buttons -->
         </ul>
     </div>
+    <div class="tab-pane fade" id="logout" role="tabpanel">
+        <h4>Logout</h4>
+        <p>Are you sure you want to log out?</p>
+    <button class="btn btn-danger" id="confirmLogout">Yes, Log Me Out</button>
+    </div>
+</div>
     
     <!-- ✅ Review Results Section -->
     
@@ -89,14 +92,10 @@
           <!-- Public reviews (cards) will load here -->
         </div>
       </div>
+      
     
-    <!-- Reports Section -->
     
-    <div class="tab-pane fade" id="reports" role="tabpanel">
-        <h4>Generate Reports</h4>
-        <p>Sortable table of student averages (converted to 100pt scale)</p>
-        <!-- Add filters, sort options later -->
-    </div>
+    
     
       <!-- ✅ Bootstrap Modal for Review Form -->
     

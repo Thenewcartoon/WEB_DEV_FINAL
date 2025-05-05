@@ -636,7 +636,7 @@ async function showReviewFormForTeam(review, questions) {
    async function fetchAndDisplayAssignedReviewsForStudent() {
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const list = document.getElementById('savedReviewsList');
-    list.innerHTML = '';
+    list.innerHTML = ''; // Error here.
    if (!currentUser || !currentUser.Email) {
        const item = document.createElement('li');
        item.className = 'list-group-item d-flex justify-content-between align-items-start flex-column';

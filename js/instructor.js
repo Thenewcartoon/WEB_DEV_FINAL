@@ -855,14 +855,14 @@ function initalizeInstructorPage() {
         //--------------------------------------------------------------------------------------------------
         //*******************************************Reports Tab**************************************** */
         //click event for generate reports button. Using a simulation with the 
-        document.getElementById('generateReportBtn').addEventListener('click', () => {
-            const selectedCourse = document.getElementById('reportCourseSelect').value;
-            if (!selectedCourse) {
-                alert("Please select a course to generate the report.");
-                return;
-            }
-            renderReportsForCourse(selectedCourse);
-        });
+        // document.getElementById('generateReportBtn').addEventListener('click', () => {
+        //     const selectedCourse = document.getElementById('reportCourseSelect').value;
+        //     if (!selectedCourse) {
+        //         alert("Please select a course to generate the report.");
+        //         return;
+        //     }
+        //     renderReportsForCourse(selectedCourse);
+        // });
     
         
         //---------------------------------------------------------------------------------------------------------------

@@ -85,11 +85,22 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     },
                     body: JSON.stringify({
                         username: strEmail,
-                        password: strPassword
-                    })
+                        password: strPassword,
+                        role: role
+                    }),
+                    credentials: 'include',
                 })
 
                 userData = await response.json()
+                if (!response.ok) {
+                        // If backend response is not ok (error in login)
+                        Swal.fire({
+                            title: 'Login Failed',
+                            text: userData.error || 'An error occurred during login. Please try again.',
+                            icon: 'error'
+                        });
+                        return;
+                    }
                 
                 if(response.ok){
                     localStorage.setItem('currentUser', JSON.stringify(userData.user));
@@ -113,6 +124,17 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("instructorPage").style.display = "block"; //displays instructor page
                                 initalizeInstructorPage()
+
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
                         })
                         }else if(role === 'student') {
                             fetch("components/student.html")
@@ -122,9 +144,24 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 document.body.classList.add('bg-light'); // optional: add a light background
                                 document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
                                 document.getElementById("studentPage").style.display = "block"; //displays student page
+
                                 initializeJoinCourseButton()
                                 fetchStudentCourses()
                                 initializeStudentPageEvents()
+
+
+                                //Have to add the logout button listener after the button is created in student.html
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
+
         
                         })
                         }
@@ -349,11 +386,13 @@ async function loginUser(username, password) {
         },
         body: JSON.stringify({
             username: username, // Email
-            password: password
-        })
+            password: password,
+            role: role
+        }),
+        credentials: 'include'
     });
     
-    const data = await response.json();
+    userData = await response.json();
     
     if (response.ok) {
         //Just simple debugging tips for now.
@@ -361,4 +400,84 @@ async function loginUser(username, password) {
     } else {
         console.error("Login failed:", data.error);
     }
+
     }
+
+
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch('http://localhost:8000/session/verify', {
+            method: 'GET',
+            credentials: 'include'  // Sends cookies.
+        })
+        
+        userData = await response.json()
+      
+        if(response.ok){
+            localStorage.setItem('currentUser', JSON.stringify(userData.user));
+    
+            Swal.fire({
+                title: 'Login Successful!',
+                text: `Welcome, ${userData.user.FirstName}`,
+                icon: 'success'
+            }).then(() => {
+                // Hide login form
+                document.querySelector('#divSelect').style.display = 'none';
+                // document.querySelector('#frmLogin').remove()
+    
+                //redirect to appropriate role page
+                if (userData.user.Role === 'instructor') {
+                    fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
+                    .then(res => res.text())
+                    .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
+    
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("instructorPage").style.display = "block"; //displays instructor page
+                        initalizeInstructorPage()
+    
+                        document.getElementById('confirmLogout').addEventListener('click', async () => {
+                            const response = await fetch('http://localhost:8000/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            if (response.ok) {
+                                // Reloads the html
+                                window.location.href = window.location.href;
+                            }
+                    });
+                })
+                }else if(userData.user.Role === 'student') {
+                    fetch("components/student.html")
+                    .then(res => res.text())
+                    .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("studentPage").style.display = "block"; //displays student page
+                        
+                        //Copies the one on login.
+                        initializeJoinCourseButton()
+                        fetchStudentCourses()
+                        initializeStudentPageEvents()
+    
+                        //Have to add the logout button listener here so that way the code will load it after the button exists.
+                        document.getElementById('confirmLogout').addEventListener('click', async () => {
+                            const response = await fetch('http://localhost:8000/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            if (response.ok) {
+                                //Reloads the html
+                                window.location.href = window.location.href;
+                            }
+                        });
+    
+                })
+                }
+            })
+        }
+    })
+
+   
