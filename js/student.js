@@ -18,6 +18,15 @@ let studentAssignments = []
 
 //***************************************************FUNCTIONS****************************************************************************************/
 
+
+
+
+
+
+
+
+
+
 // Function to generate a 6-character alphanumeric join code
 function generateJoinCode(length = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -103,6 +112,16 @@ function renderQuestionPreview(question) {
         item.remove();
     });
 }
+
+
+
+
+
+
+
+
+
+
 
 
 //***********Function for displaying courses inside the Select a Course Box under the reviews tab */

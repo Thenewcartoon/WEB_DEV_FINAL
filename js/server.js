@@ -531,6 +531,7 @@ app.get('/reviews-by-course/:courseCode', (req, res) => {
 
 //route for student submitting review
 app.post('/submit-review', (req, res) => {
+    console.log("Incoming review submission body:", req.body);
     const { assessmentID, userID, responses } = req.body;
 
     if (!assessmentID || !userID || !Array.isArray(responses)) {
@@ -545,7 +546,7 @@ app.post('/submit-review', (req, res) => {
 
     const dbOps = responses.map(r => {
         return new Promise((resolve, reject) => {
-            db.run(insertStmt, [assessmentID, userID, r.questionID, r.answer, userID, 0], function (err) {
+            db.run(insertStmt, [assessmentID, userID, r.questionID, r.response, r.targetUserID, r.public], function (err) {
                 if (err) reject(err);
                 else resolve();
             });
@@ -562,31 +563,31 @@ app.post('/submit-review', (req, res) => {
 
 
 
-app.get('/assessment-questions/:assessmentID', (req, res) => {
-    const assessmentID = req.params.assessmentID;
+// app.get('/assessment-questions/:assessmentID', (req, res) => {
+//     const assessmentID = req.params.assessmentID;
 
-    const query = `
-        SELECT QuestionID, QuestionType, QuestionNarrative, Options
-        FROM tblAssessmentQuestions
-        WHERE AssessmentID = ?
-        ORDER BY QuestionID ASC
-    `;
+//     const query = `
+//         SELECT QuestionID, QuestionType, QuestionNarrative, Options
+//         FROM tblAssessmentQuestions
+//         WHERE AssessmentID = ?
+//         ORDER BY QuestionID ASC
+//     `;
 
-    db.all(query, [assessmentID], (err, rows) => {
-        if (err) {
-            console.error("Failed to fetch questions:", err);
-            return res.status(500).json({ error: "Database error" });
-        }
+//     db.all(query, [assessmentID], (err, rows) => {
+//         if (err) {
+//             console.error("Failed to fetch questions:", err);
+//             return res.status(500).json({ error: "Database error" });
+//         }
 
-        // Optionally parse Options field if it's JSON stored as text
-        const questions = rows.map(q => ({
-            ...q,
-            Options: q.Options ? JSON.parse(q.Options) : null
-        }));
+//         // Optionally parse Options field if it's JSON stored as text
+//         const questions = rows.map(q => ({
+//             ...q,
+//             Options: q.Options ? JSON.parse(q.Options) : null
+//         }));
 
-        res.status(200).json({ questions });
-    });
-});
+//         res.status(200).json({ questions });
+//     });
+// });
 
 
 
@@ -996,6 +997,61 @@ app.delete('/teams/:groupId', (req, res) => {
         });
     });
 });
+
+
+
+// GET /review-targets/:userId/:assessmentId
+app.get('/review-targets/:userId/:assessmentId', (req, res) => {
+    const { userId, assessmentId } = req.params;
+
+    const groupQuery = `
+        SELECT gm2.UserID, u.FirstName || ' ' || u.LastName AS FullName
+        FROM tblGroupMembers gm1
+        JOIN tblGroupMembers gm2 ON gm1.GroupID = gm2.GroupID
+        JOIN tblUsers u ON gm2.UserID = u.UserID
+        WHERE gm1.UserID = ? AND gm2.UserID IS NOT NULL
+    `;
+
+    db.all(groupQuery, [userId], (err, members) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Failed to fetch group members' });
+        }
+
+        res.json({ members });
+    });
+});
+
+
+
+
+app.get('/public-feedback/:userId', (req, res) => {
+    const userId = req.params.userId;
+
+    const query = `
+        SELECT 
+            ar.ResponseID,
+            ar.Response,
+            ar.AssessmentID,
+            aq.QuestionNarrative,
+            u.FirstName || ' ' || u.LastName AS ReviewerName
+        FROM tblAssessmentResponse ar
+        JOIN tblAssessmentQuestions aq ON ar.QuestionID = aq.QuestionID
+        JOIN tblUsers u ON ar.UserID = u.UserID
+        WHERE ar.TargetUserID = ?
+          AND ar.Public = 1
+    `;
+
+    db.all(query, [userId], (err, rows) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+
+        res.json(rows);
+    });
+});
+
 
 
 

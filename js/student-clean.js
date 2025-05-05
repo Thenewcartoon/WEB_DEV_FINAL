@@ -1,3 +1,180 @@
+async function showReviewFormForTeam(review, questions) {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const modalBody = document.getElementById('fullReviewModalBody');
+    modalBody.innerHTML = ''; // Clear old content
+
+    try {
+        // 🔹 Get teammates including self
+        const res = await fetch(`http://localhost:8000/review-targets/${currentUser.UserID}/${review.AssessmentID}`);
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.error || 'Failed to fetch teammates');
+
+        const teammates = result.members; // Array of users to review
+
+        const form = document.createElement('form');
+        form.id = 'reviewAnswerForm';
+
+        teammates.forEach((member) => {
+            const memberHeader = document.createElement('h5');
+            memberHeader.textContent = `Review for ${member.FullName}`;
+            form.appendChild(memberHeader);
+
+            questions.forEach((q, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-3';
+
+                const label = document.createElement('label');
+                label.className = 'form-label';
+                label.textContent = `Q${index + 1}: ${q.text}`;
+                wrapper.appendChild(label);
+
+                let input;
+
+                const inputName = `question_${q.id}_target_${member.UserID}`;
+                console.log("Questions received:", questions);
+                switch (q.type.toLowerCase()) {
+                    case 'short-answer':
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'form-control';
+                        input.name = inputName;
+                        break;
+
+                    case 'essay':
+                        input = document.createElement('textarea');
+                        input.className = 'form-control';
+                        input.name = inputName;
+                        input.rows = 4;
+                        break;
+
+                    case 'multiple-choice':
+                        const optionsMC = String(q.options || '').split(',');
+                        optionsMC.forEach((opt, idx) => {
+                            const radio = document.createElement('div');
+                            radio.className = 'form-check';
+                            radio.innerHTML = `
+                                <input class="form-check-input" type="radio" name="${inputName}" id="opt_${q.QuestionID}_${member.UserID}_${idx}" value="${opt.trim()}">
+                                <label class="form-check-label" for="opt_${q.id}_${member.UserID}_${idx}">${opt.trim()}</label>
+                            `;
+                            wrapper.appendChild(radio);
+                        });
+                        break;
+
+                    case 'multi-select':
+                        const optionsMS = String(q.options || '').split(',');
+                        optionsMS.forEach((opt, idx) => {
+                            const checkbox = document.createElement('div');
+                            checkbox.className = 'form-check';
+                            checkbox.innerHTML = `
+                                <input class="form-check-input" type="checkbox" name="${inputName}" id="chk_${q.QuestionID}_${member.UserID}_${idx}" value="${opt.trim()}">
+                                <label class="form-check-label" for="chk_${q.QuestionID}_${member.UserID}_${idx}">${opt.trim()}</label>
+                            `;
+                            wrapper.appendChild(checkbox);
+                        });
+                        break;
+
+                    case 'likert':
+                        ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'].forEach((opt, idx) => {
+                            const likert = document.createElement('div');
+                            likert.className = 'form-check';
+                            likert.innerHTML = `
+                                <input class="form-check-input" type="radio" name="${inputName}" id="likert_${q.id}_${member.UserID}_${idx}" value="${opt}">
+                                <label class="form-check-label" for="likert_${q.id}_${member.UserID}_${idx}">${opt}</label>
+                            `;
+                            wrapper.appendChild(likert);
+                        });
+                        break;
+                }
+
+                if (input && !['multiple-choice', 'multi-select', 'likert'].includes(q.type.toLowerCase())) {
+                    wrapper.appendChild(input);
+                }
+
+                form.appendChild(wrapper);
+            });
+        });
+
+        // ➕ Submit button
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.className = 'btn btn-primary mt-3';
+        submitBtn.textContent = 'Submit All Reviews';
+        form.appendChild(submitBtn);
+
+        
+        // 📌 Submit logic
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responses = [];
+
+            teammates.forEach(member => {
+                questions.forEach(q => {
+                    const inputName = `question_${q.id}_target_${member.UserID}`;
+                    const inputs = form.querySelectorAll(`[name="${inputName}"]`);
+                    let answer = '';
+
+                    if (inputs.length > 1 && inputs[0].type === 'checkbox') {
+                        answer = Array.from(inputs).filter(i => i.checked).map(i => i.value).join(', ');
+                    } else {
+                        const selected = Array.from(inputs).find(i => i.checked || i.tagName === 'TEXTAREA' || i.tagName === 'INPUT');
+                        if (selected) answer = selected.value.trim();
+                    }
+
+                    if (answer !== '') {
+                        responses.push({
+                            assessmentID: review.AssessmentID,
+                            userID: currentUser.UserID,
+                            targetUserID: member.UserID,
+                            questionID: q.id,
+                            response: answer,
+                            public: 0
+                        });
+                    }
+                });
+            });
+
+            if (responses.length === 0) {
+                Swal.fire("Warning", "Please answer at least one question.", "warning");
+                return;
+            }
+
+            console.log("Submitting responses:", responses);
+            await fetch('http://localhost:8000/submit-review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assessmentID: review.AssessmentID,
+                    userID: currentUser.UserID,
+                    responses: responses
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error("Submission failed.");
+                alert("Review submitted successfully!");
+            })
+            .catch(err => {
+                console.error("Error submitting review:", err);
+                alert("Error submitting review.");
+            });
+        });
+
+        modalBody.appendChild(form);
+        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('fullReviewModal'));
+        modal.show();
+
+    } catch (err) {
+        console.error(err);
+        Swal.fire("Error", "Unable to load teammates or questions.", "error");
+    }
+}
+
+
+
+
+
+
+
 
 // When a review is selected (e.g., via a "View/Answer" button), fetch and render its questions
 async function renderReviewQuestions(assessmentID) {
@@ -396,6 +573,38 @@ async function submitStudentReviewAnswers(assessmentID) {
     }
 }
 
+async function fetchAndDisplayPublicFeedback() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const list = document.getElementById('publicFeedbackList');
+    list.innerHTML = '';
+
+    try {
+        const res = await fetch(`http://localhost:8000/public-feedback/${currentUser.UserID}`);
+        const feedbacks = await res.json();
+
+        if (!res.ok) throw new Error(feedbacks.error || "Could not fetch feedback.");
+
+        if (feedbacks.length === 0) {
+            list.innerHTML = '<li class="list-group-item">No public feedback yet.</li>';
+            return;
+        }
+
+        feedbacks.forEach(fb => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.innerHTML = `
+                <strong>${fb.QuestionNarrative}</strong><br>
+                <em>From ${fb.ReviewerName}</em>: ${fb.Response}
+            `;
+            list.appendChild(item);
+        });
+    } catch (err) {
+        console.error("Error loading public feedback:", err);
+        list.innerHTML = '<li class="list-group-item text-danger">Failed to load public feedback.</li>';
+    }
+}
+
+
 
 
 
@@ -437,6 +646,8 @@ async function fetchAndDisplayAssignedReviewsForStudent() {
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start flex-column';
             item.setAttribute('data-assessment-id', review.AssessmentID);
+            console.log("Loading questions for assessment:", review.AssessmentID);
+
         
             const content = document.createElement('div');
             content.innerHTML = `
@@ -456,7 +667,9 @@ async function fetchAndDisplayAssignedReviewsForStudent() {
                     if (!response.ok) throw new Error(result.error || "Failed to fetch review questions.");
                     const questions = result.questions;
 
-                    showReviewQuestionsModal(review, questions); // You will define this next
+                    showReviewFormForTeam(review, questions);
+
+                    //showReviewQuestionsModal(review, questions); // You will define this next
                 } catch (err) {
                     console.error("Error fetching review questions:", err);
                     Swal.fire("Error", "Could not load review questions.", "error");
@@ -582,6 +795,9 @@ async function fetchAndDisplayStudentTeams() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeStudentPageEvents();
+    fetchStudentCourses();
+    fetchAndDisplayStudentTeams();
+    fetchAndDisplayAssignedReviewsForStudent();
 });
 
 
