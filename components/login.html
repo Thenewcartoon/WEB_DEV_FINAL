@@ -1,10 +1,14 @@
+<!-- Login form card: hidden by default -->
 <div class="card col-12 col-md-6 col-lg-4" id="frmLogin" style="display:none;">
     <div class="card-body">
-        <h1 id="txtLoginTitle" class="text-center mt-4">Login</h1>
-        <h2 id="loginTitleResponsive" class="text-center mt-2"> </h2>
+        <!-- Login title (desktop view) -->
+<h1 id="txtLoginTitle" class="text-center mt-4">Login</h1>
+        <!-- Login title (responsive/mobile view, optional use) -->
+<h2 id="loginTitleResponsive" class="text-center mt-2"> </h2>
 
         <div class="mt-2">
-            <label for="roleSelect">Select Role:</label>
+            <!-- Role selection dropdown -->
+<label for="roleSelect">Select Role:</label>
             <select class="form-control" id="LoginroleSelect" aria-label="Select role (either student or instructor)">
                 <option value="" selected disabled>Select Role</option>
                 <option value="student">Student</option>
@@ -13,13 +17,18 @@
         </div>
 
 
-        <label for="txtUsername" class="mt-4">Input Username:</label>
+        <!-- Username/email input -->
+<label for="txtUsername" class="mt-4">Input Username:</label>
         <input id="txtUsername" class="form-control mt-2" type="email" placeholder="Email" aria-label="textbox for email">
-        <label for="txtPassword" class="mt-4">Input Password:</label>
+        <!-- Password input -->
+<label for="txtPassword" class="mt-4">Input Password:</label>
         <input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="textbox for password">
     
-        <button class="btn btn-primary col-12 mt-3" type="button" id="btnLogin">Login</button>
-        <!-- <button class="btn btn-link col-12 mt-2" type="button" id="btnPassReset">Reset Password</button> -->
-        <button class="btn btn-link col-12 mt-4" type="button" id="btnSwapLogin">Back to home page</button>
+        <!-- Submit login button -->
+<button class="btn btn-primary col-12 mt-3" type="button" id="btnLogin">Login</button>
+        <!-- ORIGINAL: Reset password button (commented out) -->
+<!-- <button class="btn btn-link col-12 mt-2" type="button" id="btnPassReset">Reset Password</button> -->
+        <!-- Button to return to home page -->
+<button class="btn btn-link col-12 mt-4" type="button" id="btnSwapLogin">Back to home page</button>
     </div>
 </div>
