@@ -792,6 +792,46 @@ function initalizeInstructorPage() {
             setupCourseStudentListener();
         });
     
+
+        // When course is selected in the "Review Results" tab, fetch reviews for that course
+        document.getElementById('resultsCourseSelect').addEventListener('change', async function () {
+            const selectedCourse = this.value;
+            const reviewSelect = document.getElementById('resultsReviewSelect');
+            reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+            document.getElementById('reviewResultsList').innerHTML = ''; // Clear existing results
+
+            if (!selectedCourse) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
+                const data = await response.json();
+
+                if (!response.ok || !data || data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = 'No reviews found';
+                    reviewSelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(review => {
+                    const option = document.createElement('option');
+                    option.value = review.AssessmentID;
+                    option.textContent = review.Name;
+                    reviewSelect.appendChild(option);
+                });
+
+            } catch (err) {
+                console.error("Error loading review results:", err);
+            }
+        });
+
+        document.getElementById('resultsReviewSelect').addEventListener('change', () => {
+            document.getElementById('viewReviewResultsBtn').click(); // Simulate click to load results
+        });
+        
+
+
         
         //click event for the logout button on the instructor page
         const logoutBtn = document.getElementById('btnLogout');
@@ -827,31 +867,41 @@ function initalizeInstructorPage() {
         
         //---------------------------------------------------------------------------------------------------------------
         //*************************************Review Results********************************************************* */
-        document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
-            const selectedCourse = document.getElementById('resultsCourseSelect').value;
-            const selectedReview = document.getElementById('resultsReviewSelect').value;
+        document.getElementById('viewReviewResultsBtn').addEventListener('click', async () => {
+            const reviewSelect = document.getElementById('resultsReviewSelect');
+            const selectedReviewId = reviewSelect.value;
         
-            // Simple validation
-            if (!selectedCourse || !selectedReview) {
-                alert("Please select both a course and a review.");
-                return;
-            }
-        
-            // Simulate what will eventually be a backend call
-            console.log("Ready to fetch results for:");
-            console.log("Course Code:", selectedCourse);
-            console.log("Review ID:", selectedReview);
-        
-            // Future backend fetch will go here
-        
-            // Show a placeholder for now
             const list = document.getElementById('reviewResultsList');
-            list.innerHTML = `
-                <li class="list-group-item text-muted">
-                    Placeholder: Review results will be loaded here from the backend.
-                </li>
-            `;
+            list.innerHTML = ''; // Clear any existing results
+        
+            if (!selectedReviewId) return;
+        
+            try {
+                const res = await fetch(`http://localhost:8000/review-results/${selectedReviewId}`);
+                const data = await res.json();
+        
+                if (!res.ok) throw new Error(data.error || 'Failed to load review results');
+        
+                data.results.forEach(entry => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.innerHTML = `
+                        <strong>Reviewer:</strong> ${entry.ReviewerName} <br>
+                        <strong>Target:</strong> ${entry.TargetName} <br>
+                        <strong>Question:</strong> ${entry.QuestionNarrative} <br>
+                        <strong>Response:</strong> ${entry.Response} <br>
+                        <strong>Visibility:</strong> ${entry.Public ? 'Public' : 'Private'}
+                    `;
+                    list.appendChild(item);
+                });
+        
+            } catch (err) {
+                console.error('Error loading results:', err);
+                alert('Failed to fetch review results.');
+            }
         });
+        
+        
         
         //***************************************End of Review Results*********************************************** */
         //--------------------------------------------------------------------------------------------------------------

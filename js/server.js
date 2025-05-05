@@ -930,31 +930,65 @@ db.all(groupQuery, [userId], (err, members) => {
 
 });
 app.get('/public-feedback/:userId', (req, res) => {
- const userId = req.params.userId;
-const query = `
-    SELECT 
-        ar.ResponseID,
-        ar.Response,
-        ar.AssessmentID,
-        aq.QuestionNarrative,
-        u.FirstName || ' ' || u.LastName AS ReviewerName
-    FROM tblAssessmentResponse ar
-    JOIN tblAssessmentQuestions aq ON ar.QuestionID = aq.QuestionID
-    JOIN tblUsers u ON ar.UserID = u.UserID
-    WHERE ar.TargetUserID = ?
-      AND ar.Public = 1
-`;
+    const userId = req.params.userId;
 
-db.all(query, [userId], (err, rows) => {
-    if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: 'Database query failed' });
-    }
+    const query = `
+        SELECT 
+            ar.ResponseID,
+            ar.Response,
+            ar.AssessmentID,
+            aq.QuestionNarrative,
+            u.FirstName || ' ' || u.LastName AS ReviewerName
+        FROM tblAssessmentResponse ar
+        JOIN tblAssessmentQuestions aq ON ar.QuestionID = aq.QuestionID
+        JOIN tblUsers u ON ar.UserID = u.UserID
+        WHERE ar.TargetUserID = ?
+          AND ar.Public = 1
+    `;
 
-    res.json(rows);
+    db.all(query, [userId], (err, rows) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: 'Database query failed' });
+        }
+
+        res.json(rows);
+    });
 });
 
+
+// Route: Get all submitted responses for a specific review (for instructor results tab)
+app.get('/review-results/:assessmentID', (req, res) => {
+    const { assessmentID } = req.params;
+
+    const query = `
+        SELECT 
+            ar.ResponseID,
+            ar.Response,
+            ar.Public,
+            ar.TargetUserID,
+            ar.UserID AS ReviewerID,
+            aq.QuestionNarrative,
+            rev.FirstName || ' ' || rev.LastName AS ReviewerName,
+            tgt.FirstName || ' ' || tgt.LastName AS TargetName
+        FROM tblAssessmentResponse ar
+        JOIN tblAssessmentQuestions aq ON ar.QuestionID = aq.QuestionID
+        JOIN tblUsers rev ON ar.UserID = rev.UserID
+        JOIN tblUsers tgt ON ar.TargetUserID = tgt.UserID
+        WHERE ar.AssessmentID = ?
+        ORDER BY tgt.LastName, tgt.FirstName
+    `;
+
+    db.all(query, [assessmentID], (err, rows) => {
+        if (err) {
+            console.error("Error fetching review results:", err);
+            return res.status(500).json({ error: "Database error while fetching review results." });
+        }
+
+        return res.status(200).json({ results: rows });
+    });
 });
+
 app.get('/',(req,res,next) => {
  res.status(200).json({message:"Server is working"})
  })
