@@ -1,3 +1,4 @@
+<!-- Container for the entire Instructor Dashboard, hidden by default -->
 <div id="instructorPage" class="container mt-5" style="display: none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Instructor Dashboard</h2>
@@ -5,7 +6,8 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <ul class="nav nav-tabs" id="instructorTabs" role="tablist">
+    <!-- Navigation Tabs for dashboard sections -->
+<ul class="nav nav-tabs" id="instructorTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
         </li>
@@ -30,6 +32,7 @@
     <div class="tab-content mt-4" id="instructorTabContent">
         <!-- Courses Section -->
         <!-- Courses Section -->
+<!-- Courses Tab Panel -->
 <div class="tab-pane fade show active" id="courses" role="tabpanel">
 <h4>Create or Manage Courses</h4>
 
@@ -88,6 +91,7 @@
 
         <!-- Teams Section -->
         <!-- Teams Section -->
+<!-- Teams Tab Panel -->
 <div class="tab-pane fade" id="teams" role="tabpanel">
 <h4>Create or Manage Teams</h4>
 
@@ -130,7 +134,8 @@
 
 
         <!-- Reviews Section -->
-        <div class="tab-pane fade" id="reviews" role="tabpanel">
+        <!-- Reviews Tab Panel -->
+<div class="tab-pane fade" id="reviews" role="tabpanel">
             <h4>Manage Review Questions</h4>
             <!-- Review Title -->
             <div class="mb-3">
@@ -188,7 +193,8 @@
 
         <!-- Schedule Section -->
         <!-- Schedule Peer Reviews -->
-    <div class="tab-pane fade" id="schedule" role="tabpanel">
+    <!-- Schedule Tab Panel -->
+<div class="tab-pane fade" id="schedule" role="tabpanel">
         <h4 class="mb-4">Assign Peer Reviews</h4>
 
         <!-- Select Course -->
@@ -231,7 +237,8 @@
 
 
         <!-- Review Results Section -->
-        <div class="tab-pane fade" id="results" role="tabpanel">
+        <!-- Review Results Tab Panel -->
+<div class="tab-pane fade" id="results" role="tabpanel">
             <h4>Submitted Peer Reviews</h4>
 
             <div class="mb-3">
@@ -258,7 +265,8 @@
         </div>
 
         <!-- Reports Section -->
-        <div class="tab-pane fade" id="reports" role="tabpanel">
+        <!-- Reports Tab Panel -->
+<div class="tab-pane fade" id="reports" role="tabpanel">
             <h4>Review Reports</h4>
 
             <div class="mb-3">
@@ -280,6 +288,7 @@
 
 <!-- Full Review Model -->
 <!-- Full Review Modal -->
+<!-- Modal for viewing full review details -->
 <div class="modal fade" id="fullReviewModel" tabindex="-1" aria-labelledby="fullReviewModelLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
