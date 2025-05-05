@@ -21,10 +21,10 @@ app.use(cookieParser())
 
 //Use a post here since we are accepting user input as the login and password to validate, but do not update anything in the database.
 app.post('/validateUserLogin', (req, res, next) => {
-    const { username, password } = req.body;
+    const { username, password, role} = req.body;
 
-    const query = 'SELECT * FROM tblUsers WHERE Email = ?';
-    db.get(query, [username], (err, row) => {
+    const query = 'SELECT * FROM tblUsers WHERE Email = ? AND Role = ?';
+    db.get(query, [username, role], (err, row) => {
         if (err) {
             // Internal server error
             return res.status(500).json({ error: "Error in connecting to database." });

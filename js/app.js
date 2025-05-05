@@ -86,6 +86,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                     body: JSON.stringify({
                         username: strEmail,
                         password: strPassword,
+                        role: role
                     }),
                     credentials: 'include',
                 })
@@ -376,7 +377,8 @@ async function loginUser(username, password) {
         },
         body: JSON.stringify({
             username: username, // Email
-            password: password
+            password: password,
+            role: role
         }),
         credentials: 'include'
     });
