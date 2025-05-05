@@ -32,7 +32,7 @@ app.post('/validateUserLogin', (req, res, next) => {
 
         if (!row) {
             // Not found error
-            return res.status(404).json({ error: "Email not found in the database." });
+            return res.status(404).json({ error: `${username} with role ${role} not found in the database. Please make sure that both the role and email are valid.` });
         }
 
         bcrypt.compare(password, row.Password, (err, userFound) => {

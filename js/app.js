@@ -92,6 +92,15 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                 })
 
                 userData = await response.json()
+                if (!response.ok) {
+                        // If backend response is not ok (error in login)
+                        Swal.fire({
+                            title: 'Login Failed',
+                            text: userData.error || 'An error occurred during login. Please try again.',
+                            icon: 'error'
+                        });
+                        return;
+                    }
                 
                 if(response.ok){
                     localStorage.setItem('currentUser', JSON.stringify(userData.user));
