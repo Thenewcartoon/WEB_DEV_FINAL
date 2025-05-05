@@ -1,7 +1,7 @@
 <div id="instructorPage" class="container mt-5" style="display: none">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Instructor Dashboard</h2>
-        <button id="btnLogout" class="btn btn-outline-secondary">Logout</button>
+        <!-- <button id="btnLogout" class="btn btn-outline-secondary">Logout</button> -->
     </div>
 
     <!-- Navigation Tabs -->
@@ -24,6 +24,9 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
         </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="logout-tab" data-bs-toggle="tab" data-bs-target="#logout" type="button" role="tab">Logout</button>
+        </li>  
     </ul>
 
     <!-- Tab Content -->
@@ -275,6 +278,14 @@
                 <!-- Report items will go here -->
             </ul>
         </div>
+        
+        <!--Logout Section-->
+        <div class="tab-pane fade" id="logout" role="tabpanel">
+            <h4>Logout</h4>
+            <p>Are you sure you want to log out?</p>
+            <button class="btn btn-danger" id="confirmLogout">Yes, Log Me Out</button>
+        </div>
+
     </div>
 </div>
 

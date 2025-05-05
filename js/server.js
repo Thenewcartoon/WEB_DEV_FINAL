@@ -7,6 +7,7 @@ const corsOptions = {
 const {v4:uuidv4} = require('uuid')
 const sqlite3 = require('sqlite3').verbose()
 const bcrypt = require('bcrypt')
+const cookieParser = require('cookie-parser')
 const intSalt = 10;
 
 const dbSource = "Peer_Assessment.db" // Should go back to the root directory to access the database file, may need to update in future.
@@ -16,43 +17,68 @@ const db = new sqlite3.Database(dbSource)
 var app = express()
 app.use(cors(corsOptions))
 app.use(express.json())
+app.use(cookieParser())
 
 //Use a post here since we are accepting user input as the login and password to validate, but do not update anything in the database.
-app.post('/validateUserLogin', (req, res, next) =>{
-    const { username, password } = req.body
-    
+app.post('/validateUserLogin', (req, res, next) => {
+    const { username, password } = req.body;
 
-    const query = 'SELECT * FROM tblUsers WHERE email = ?'
+    const query = 'SELECT * FROM tblUsers WHERE Email = ?';
     db.get(query, [username], (err, row) => {
         if (err) {
-            //Interal server error.
-            return res.status(500).json({ error: "Error in connecting to database."})
+            // Internal server error
+            return res.status(500).json({ error: "Error in connecting to database." });
         }
 
-        if (!row){
-            //Not found error.
-            return res.status(404).json({ error: "Email not found in the database."})
+        if (!row) {
+            // Not found error
+            return res.status(404).json({ error: "Email not found in the database." });
         }
 
         bcrypt.compare(password, row.Password, (err, userFound) => {
             if (err) {
-                //Interal server error.
-                return res.status(500).json({ error: "Error in connecting to database."})
+                // Internal server error
+                return res.status(500).json({ error: "Error in connecting to database." });
             }
-            if(userFound){
-                return res.status(200).json({
-                    message: "Login successful",
-                    // For now only returns some data.
-                    user: { UserID: row.UserID, FirstName: row.FirstName, LastName: row.LastName, Email: row.Email }
-                })
-            }
-            else{
+
+            if (userFound) {
+                // ✅ Create a login session
+                let strSessionID = uuidv4(); // Give it a unique ID
+                const strCommand = 'INSERT INTO tblSessions (SessionID, UserID, StartDateTime) VALUES (?, ?, ?)';
+                let dateNow = new Date();
+                let strNow = dateNow.toISOString();
+
+                db.run(strCommand, [strSessionID, row.UserID, strNow], function (err) {
+                    if (err) {
+                        return res.status(500).json({ error: "Error creating session." });
+                    }
+
+                    // ✅ Create a secure cookie
+                    res.cookie('sessionID', strSessionID, {
+                        httpOnly: true,
+                        secure: true,
+                        sameSite: 'None', // Cookies are not set unless this is none, but secure must be true
+                        maxAge: 12 * 60 * 60 * 1000 // 12 hours
+                    });
+
+                    return res.status(200).json({
+                        message: "Login successful",
+                        user: {
+                            UserID: row.UserID,
+                            FirstName: row.FirstName,
+                            LastName: row.LastName,
+                            Email: row.Email,
+                            Role: row.Role
+                        }
+                    });
+                });
+            } else {
                 // Unauthorized
-                return res.status(401).json({ error: 'Invalid Password..'})
+                return res.status(401).json({ error: 'Invalid Password.' });
             }
-        })
-    })
-})
+        });
+    });
+});
 
 
 // Register New User Endpoint
@@ -997,6 +1023,72 @@ app.delete('/teams/:groupId', (req, res) => {
     });
 });
 
+app.get('/session/verify', (req, res, next) =>{
+    // Will clear out old sessions from the database that are not valid.
+    const deleteOldSessions = () => {
+        const cutoff = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+        const strCommand = 'DELETE FROM tblSessions WHERE StartDateTime < ?';
+        db.run(strCommand, [cutoff], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })
+    }
+
+    deleteOldSessions()
+
+    const sessionID = req.cookies.sessionID
+    if (!sessionID) {
+        return res.status(401).json({ error: "Not logged in" });  // If no session, reject
+    }
+
+    const getInfoQuery = `
+    SELECT u.UserId, u.FirstName, u.LastName, u.Email, u.Role 
+    FROM tblSessions s
+    JOIN tblUsers u ON s.UserID = u.UserID
+    WHERE s.SessionID = ?`
+
+    db.get(getInfoQuery, [sessionID], (err, row) => {
+        if (err) {
+            console.error("Error verifying session:", err);
+            return res.status(500).json({ error: "Server error during session verification." });
+        }
+        if (!row) {
+            return res.status(401).json({ status: "invalid", error: "Session not found or expired." });
+        }
+        
+        return res.status(200).json({
+            status: "valid",
+            user: {
+                UserID: row.UserID,
+                FirstName: row.FirstName,
+                LastName: row.LastName,
+                Email: row.Email,
+                Role: row.Role
+            }
+        })
+    })
+})
+
+app.post('/logout', (req, res, next) => {
+    const sessionID = req.cookies.sessionID
+
+    if (sessionID){
+        const strCommand = 'DELETE FROM tblSessions WHERE SessionID = ?';
+        db.run(strCommand, [sessionID], (err) => {
+            if (err) {
+                console.log("Error cleaning sessions:", err);
+            }
+        })  
+
+        res.clearCookie('sessionID', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None'
+        })
+    }
+    res.status(200).send('Logged out successfully');
+})
 
 
 app.get('/',(req,res,next) => {
