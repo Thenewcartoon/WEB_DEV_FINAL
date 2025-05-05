@@ -1274,6 +1274,38 @@ if (createCourseBtn) {
     });
 }
 
+
+document.getElementById('resultsCourseSelect').addEventListener('change', function () {
+    const selectedCourseCode = this.value;
+
+    if (!selectedCourseCode) return;
+
+    // Fetch all reviews for this course
+    fetch(`http://localhost:8000/reviews-by-course/${selectedCourseCode}`)
+        .then(response => response.json())
+        .then(data => {
+            const reviewDropdown = document.getElementById('resultsReviewSelect');
+            reviewDropdown.innerHTML = '<option disabled selected>Select a review</option>';
+
+            if (data.length === 0) {
+                reviewDropdown.innerHTML += '<option disabled>No reviews found</option>';
+                return;
+            }
+
+            data.forEach(review => {
+                const option = document.createElement('option');
+                option.value = review.AssessmentID;
+                option.textContent = review.Name;
+                reviewDropdown.appendChild(option);
+            });
+        })
+        .catch(err => {
+            console.error('Failed to fetch reviews for selected course:', err);
+            Swal.fire("Error", "Unable to load reviews for this course.", "error");
+        });
+});
+
+
         
         populateReportCourseDropdown()
 
