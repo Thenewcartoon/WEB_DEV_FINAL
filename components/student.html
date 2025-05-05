@@ -1,47 +1,47 @@
-    <div id="studentPage" class="container mt-5">
-        <h2 class="text-center mb-4">Student Dashboard</h2>
-    
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs" id="studentTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">Teams</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
-            </li>
-            
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
-            </li>
-        </ul>
-    
-        <!-- Tab Content -->
-        <div class="tab-content mt-4" id="studentTabContent">
-            
-            <!-- Courses Section -->
-            <!-- Courses Section -->
-            <div class="tab-pane fade show active" id="courses" role="tabpanel">
-            <h4>Manage Courses</h4>
-            <!-- ✅ Join Course Form -->
-            <div class="mb-4">
-                <h5>Join a Course</h5>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" id="joinCodeInput" placeholder="Enter Join Code">
-                    <button class="btn btn-primary" id="joinCourseBtn">Join</button>
-                </div>
-            </div>
+<div id="studentPage" class="container mt-5"> <h2 class="text-center mb-4">Student Dashboard</h2>
 
-    <!-- Generated Join Code Placeholder -->
+    ```
+        <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs" id="studentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">Teams</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
+        </li>
+        
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
+        </li>
+    </ul>
+    
+    <!-- Tab Content -->
+    ```
+    
+    <!-- Courses Section -->
+    
+    <div class="tab-pane fade show active" id="courses" role="tabpanel">
+        <h4>Manage Courses</h4>
+        <div class="mb-4">
+            <h5>Join a Course</h5>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="joinCodeInput" placeholder="Enter Join Code">
+                <button class="btn btn-primary" id="joinCourseBtn">Join</button>
+            </div>
+        </div>
+    
+    ```
+    <!-- Join Code Display -->
     <div id="joinCodeDisplay" class="alert alert-info d-none" role="alert">
         Join Code: <strong id="joinCodeText"></strong>
     </div>
-
+    
     <!-- Existing Courses Table -->
     <h5 class="mt-4">Your Courses</h5>
     <table class="table table-bordered table-striped">
@@ -55,81 +55,73 @@
         </thead>
         <tbody id="courseTableBody">
             <!-- Course rows will be added dynamically here -->
-    
         </tbody>
     </table>
-</div>
-
+    ```
     
-            <!-- Teams Section -->
-            <!-- Teams Section -->
-            <div class="tab-pane fade" id="teams" role="tabpanel">
-                <h4>Your Team(s)</h4>
-                <p class="text-muted">Below are the teams you are currently assigned to.</p>
-            
-                <ul class="list-group" id="studentTeamList">
-                    <!-- Team data will be inserted here dynamically -->
-                </ul>
-            </div>
-            
-
-    
-<!-- Reviews Section -->
-<!-- Reviews Section -->
-<div class="tab-pane fade" id="reviews" role="tabpanel">
-    <h4>See Reviews</h4>
-  
-    <!-- Saved Reviews Display -->
-    <ul class="list-group" id="savedReviewsList">
-      <!-- Reviews will appear here with "View / Answer" buttons -->
-    </ul>
-
-    
-
-            <!-- Review Results Section -->
-            <div class="tab-pane fade" id="results" role="tabpanel">
-                <h4>View Review Submissions</h4>
-                <button class="btn btn-info my-2">View Private Reviews</button>
-                <button class="btn btn-outline-info my-2">View Public Reviews</button>
-            </div>
-    
-            <!-- Reports Section -->
-            <div class="tab-pane fade" id="reports" role="tabpanel">
-                <h4>Generate Reports</h4>
-                <p>Sortable table of student averages (converted to 100pt scale)</p>
-                <!-- Add filters, sort options later -->
-            </div>
-        </div>
     </div>
-
-<!-- FIXED: All 'model' → 'modal' -->
-<!-- Correct Bootstrap Modal -->
-<!-- Full Review Modal -->
-<!-- Full Review Modal -->
-<div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-  
+    
+    <!-- Teams Section -->
+    
+    <div class="tab-pane fade" id="teams" role="tabpanel">
+        <h4>Your Team(s)</h4>
+        <p class="text-muted">Below are the teams you are currently assigned to.</p>
+        <ul class="list-group" id="studentTeamList">
+            <!-- Team data will be inserted here dynamically -->
+        </ul>
+    </div>
+    
+    <!-- Reviews Section -->
+    
+    <div class="tab-pane fade" id="reviews" role="tabpanel">
+        <h4>See Reviews</h4>
+        <ul class="list-group" id="savedReviewsList">
+            <!-- Reviews will appear here with "View / Answer" buttons -->
+        </ul>
+    </div>
+    
+    <!-- ✅ Review Results Section -->
+    
+    <div class="fade" id="results" role="tabpanel">
+        <h4>View Review Submissions</h4>
+        <button class="btn btn-outline-info my-2" id="viewPublicReviewsBtn">View Public Reviews</button>
+        <div class="list-group" id="publicReviewResults">
+          <!-- Public reviews (cards) will load here -->
+        </div>
+      </div>
+    
+    <!-- Reports Section -->
+    
+    <div class="tab-pane fade" id="reports" role="tabpanel">
+        <h4>Generate Reports</h4>
+        <p>Sortable table of student averages (converted to 100pt scale)</p>
+        <!-- Add filters, sort options later -->
+    </div>
+    
+      <!-- ✅ Bootstrap Modal for Review Form -->
+    
+    <div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+    
+    ```
         <div class="modal-header">
           <h5 class="modal-title" id="fullReviewModalLabel">Review Details</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-  
-        <!-- Questions will be inserted here -->
+    
         <div class="modal-body" id="fullReviewModalBody">
-          <!-- Dynamically injected question fields go here -->
+          <!-- Dynamically injected form goes here -->
         </div>
-  
-        <!-- ✅ Add this block below -->
+    
         <div class="modal-footer">
-          <button id="submitReviewBtn" class="btn btn-success">Submit Review</button>
+          <!-- Optional: Add static close button here -->
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         </div>
-  
+    
       </div>
     </div>
-  </div>
-  
-  
-  
-
-
+    ```
+    
+      </div>
+    
