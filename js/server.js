@@ -531,31 +531,33 @@ app.get('/reviews-by-course/:courseCode', (req, res) => {
 
 //route for student submitting review
 app.post('/submit-review', (req, res) => {
-    const { responses } = req.body;
+    const { assessmentID, userID, responses } = req.body;
 
-    if (!Array.isArray(responses) || responses.length === 0) {
-        return res.status(400).json({ error: "No responses provided." });
+    if (!assessmentID || !userID || !Array.isArray(responses)) {
+        return res.status(400).json({ error: "Missing or invalid data." });
     }
 
-    const stmt = db.prepare(`
-        INSERT INTO tblAssessmentResponse
+    const insertStmt = `
+        INSERT INTO tblAssessmentResponse 
         (AssessmentID, UserID, QuestionID, Response, TargetUserID, Public)
         VALUES (?, ?, ?, ?, ?, ?)
-    `);
+    `;
 
-    db.serialize(() => {
-        responses.forEach(r => {
-            stmt.run(r.assessmentID, r.userID, r.questionID, r.response, r.targetUserID, r.public);
-        });
-
-        stmt.finalize(err => {
-            if (err) {
-                console.error("Insert error:", err);
-                return res.status(500).json({ error: "Failed to save responses." });
-            }
-            res.status(200).json({ message: "Review submitted successfully." });
+    const dbOps = responses.map(r => {
+        return new Promise((resolve, reject) => {
+            db.run(insertStmt, [assessmentID, userID, r.questionID, r.answer, userID, 0], function (err) {
+                if (err) reject(err);
+                else resolve();
+            });
         });
     });
+
+    Promise.all(dbOps)
+        .then(() => res.status(201).json({ message: "Responses saved." }))
+        .catch(err => {
+            console.error("Failed to insert responses:", err);
+            res.status(500).json({ error: "Database insert error." });
+        });
 });
 
 

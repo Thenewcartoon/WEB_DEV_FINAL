@@ -254,26 +254,88 @@ function showReviewQuestionsModal(review, questions) {
         form.appendChild(wrapper);
     });
 
-    // Submit button
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !currentUser.UserID) {
+            Swal.fire("Error", "User not found.", "error");
+            return;
+        }
+
+        const responses = [];
+
+        questions.forEach((q) => {
+            const name = `question_${q.QuestionID}`;
+            let answer = '';
+
+            if (q.QuestionType.toLowerCase() === 'multi-select') {
+                const checkboxes = form.querySelectorAll(`input[name="${name}"]:checked`);
+                answer = Array.from(checkboxes).map(cb => cb.value).join(', ');
+            } else {
+                const input = form.querySelector(`input[name="${name}"]:checked`) ||
+                              form.querySelector(`input[name="${name}"]`) ||
+                              form.querySelector(`textarea[name="${name}"]`);
+                answer = input ? input.value.trim() : '';
+            }
+
+            if (answer !== '') {
+                responses.push({
+                    questionID: q.QuestionID,
+                    answer: answer
+                });
+            }
+        });
+
+        if (responses.length === 0) {
+            Swal.fire("Warning", "You must answer at least one question.", "warning");
+            return;
+        }
+
+        const payload = {
+            assessmentID: review.AssessmentID,
+            userID: currentUser.UserID,
+            responses: responses
+        };
+
+        try {
+            const res = await fetch('http://localhost:8000/submit-review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error || 'Submission failed.');
+
+            Swal.fire("Success", "Your review has been submitted!", "success");
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('fullReviewModal'));
+            modal.hide();
+            const reviewItem = document.querySelector(`li[data-assessment-id="${review.AssessmentID}"]`);
+            if (reviewItem) reviewItem.remove();
+
+
+        } catch (err) {
+            console.error("Submit error:", err);
+            Swal.fire("Error", err.message, "error");
+        }
+    });
+
     const submitBtn = document.createElement('button');
     submitBtn.type = 'submit';
-    submitBtn.className = 'btn btn-primary';
+    submitBtn.className = 'btn btn-primary mt-3';
     submitBtn.textContent = 'Submit Review';
     form.appendChild(submitBtn);
 
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Submit logic here in a future step
-        Swal.fire("Submitted", "Your review has been submitted!", "success");
-        const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('fullReviewModal'));
-        modal.hide();
-    });
-
+    // 🔻 Add these two lines at the very end:
     modalBody.appendChild(form);
 
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('fullReviewModal'));
     modal.show();
 }
+
+
 
 
 
@@ -343,7 +405,8 @@ async function fetchAndDisplayAssignedReviewsForStudent() {
 
     if (!currentUser || !currentUser.Email) {
         const item = document.createElement('li');
-        item.className = 'list-group-item';
+        item.className = 'list-group-item d-flex justify-content-between align-items-start flex-column';
+
         item.textContent = 'Error: No student found.';
         list.appendChild(item);
         return;

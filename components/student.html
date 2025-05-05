@@ -78,57 +78,11 @@
 <!-- Reviews Section -->
 <div class="tab-pane fade" id="reviews" role="tabpanel">
     <h4>See Reviews</h4>
-
-    <!-- Course Selection -->
-    <div class="mb-3">
-        <label for="reviewCourseSelect" class="form-label">Select Course</label>
-        <select class="form-select" id="reviewCourseSelect">
-            <option disabled selected>Select a course</option>
-            <!-- You'll populate this from the courses[] array -->
-        </select>
-    </div>
-
-    <!-- Visibility Options (optional/future enhancement) -->
-    <div class="mb-3">
-        <label for="reviewVisibilitySelect" class="form-label">Select Visibility</label>
-        <select class="form-select" id="reviewVisibilitySelect">
-            <option value="public">Publicly Visible</option>
-            <option value="private">Privately Visible</option>
-        </select>
-    </div>
-
+  
     <!-- Saved Reviews Display -->
     <ul class="list-group" id="savedReviewsList">
-        <!-- Reviews will appear here -->
+      <!-- Reviews will appear here with "View / Answer" buttons -->
     </ul>
-
-    <hr class="my-4">
-
-    <!-- Answering Section -->
-    <h5>Answer Review</h5>
-    <form id="reviewAnswerForm" class="mb-4">
-        <div id="reviewQuestionsContainer">
-            <!-- Questions will be dynamically inserted here -->
-        </div>
-
-        <div class="mb-3">
-            <label for="targetUserEmail" class="form-label">Reviewing (Peer's Email)</label>
-            <input type="email" class="form-control" id="targetUserEmail" placeholder="Enter peer's email to review">
-        </div>
-
-        <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" id="isPublicCheckbox">
-            <label class="form-check-label" for="isPublicCheckbox">Make response public</label>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Submit Review</button>
-    </form>
-
-    <!-- Success Message -->
-    <div id="reviewSubmitAlert" class="alert alert-success d-none" role="alert">
-        Review submitted successfully!
-    </div>
-</div>
 
     
 
@@ -151,16 +105,26 @@
 <!-- FIXED: All 'model' → 'modal' -->
 <!-- Correct Bootstrap Modal -->
 <!-- Full Review Modal -->
+<!-- Full Review Modal -->
 <div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
+  
         <div class="modal-header">
           <h5 class="modal-title" id="fullReviewModalLabel">Review Details</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+  
+        <!-- Questions will be inserted here -->
         <div class="modal-body" id="fullReviewModalBody">
-          <!-- This div must have the correct ID -->
+          <!-- Dynamically injected question fields go here -->
         </div>
+  
+        <!-- ✅ Add this block below -->
+        <div class="modal-footer">
+          <button id="submitReviewBtn" class="btn btn-success">Submit Review</button>
+        </div>
+  
       </div>
     </div>
   </div>
