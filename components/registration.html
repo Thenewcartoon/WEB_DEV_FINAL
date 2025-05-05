@@ -1,11 +1,16 @@
+<!-- Registration form card: hidden by default -->
 <div class="card col-12 col-md-6 col-lg-4" id="frmRegister" style="display:none;">
     <div class="card-body">
-        <h1 class="text-center mb-4">Register Account</h1>
-        <input id="txtFirstName" class="form-control mt-2" type="text" placeholder="First Name" aria-label="first name text box">
-        <input id="txtLastName" class="form-control mt-2" type="text" placeholder="Last Name" aria-label="last name text box">
+        <!-- Registration title -->
+<h1 class="text-center mb-4">Register Account</h1>
+        <!-- First name input -->
+<input id="txtFirstName" class="form-control mt-2" type="text" placeholder="First Name" aria-label="first name text box">
+        <!-- Last name input -->
+<input id="txtLastName" class="form-control mt-2" type="text" placeholder="Last Name" aria-label="last name text box">
         
         <div class="mt-3">
-            <label for="roleSelect">Select Role:</label>
+            <!-- Role selection dropdown -->
+<label for="roleSelect">Select Role:</label>
             <select class="form-select" id="RegistrationroleSelect" aria-label="Select role (either student or instructor)">
                 <option value="" selected disabled>Select Role</option>
                 <option value="student">Student</option>
@@ -13,22 +18,29 @@
             </select>
         </div>
 
-        <input id="txtUsername" class="form-control mt-4" type="email" placeholder="Email" aria-label="textbox for email">
-        <input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="textbox for password">
+        <!-- Email input -->
+<input id="txtUsername" class="form-control mt-4" type="email" placeholder="Email" aria-label="textbox for email">
+        <!-- Password input -->
+<input id="txtPassword" class="form-control mt-2" type="password" placeholder="Password" aria-label="textbox for password">
         
-        <div id="studentContact" style="display: none;">
+        <!-- Contact details (only shown if role is "student") -->
+<div id="studentContact" style="display: none;">
             <!-- Select dropdown for contact type -->
-            <select id="contactType" class="form-select mt-3" aria-label="Select form of contact information (either mobile number, discord, or teams)">
+            <!-- Contact type dropdown (e.g., mobile, Discord, Teams) -->
+<select id="contactType" class="form-select mt-3" aria-label="Select form of contact information (either mobile number, discord, or teams)">
                 <option value="" selected disabled>Select form of contact information</option>
                 <option value="mobile">Mobile</option>
                 <option value="discord">Discord</option>
                 <option value="teams">Teams</option>
             </select>
             <!-- Input for contact info -->
-            <input id="txtContact" class="form-control mt-2" type="text" placeholder="Enter your contact info" aria-label="contact information textbox(either phone number, discord name, or teams name)">
+            <!-- Input for contact detail based on type -->
+<input id="txtContact" class="form-control mt-2" type="text" placeholder="Enter your contact info" aria-label="contact information textbox(either phone number, discord name, or teams name)">
         </div>
         
-        <button class="btn btn-primary col-12 mt-3" type="button" id="btnRegister">Register</button>
-        <button class="btn btn-link col-12 mt-2" type="button" id="btnSwapLogin">Back to home page</button>
+        <!-- Submit registration button -->
+<button class="btn btn-primary col-12 mt-3" type="button" id="btnRegister">Register</button>
+        <!-- Back to home page button -->
+<button class="btn btn-link col-12 mt-2" type="button" id="btnSwapLogin">Back to home page</button>
     </div>
 </div>
