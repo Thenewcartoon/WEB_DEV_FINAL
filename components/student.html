@@ -12,9 +12,7 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
-            </li>
+            
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
             </li>
@@ -77,6 +75,7 @@
 
     
 <!-- Reviews Section -->
+<!-- Reviews Section -->
 <div class="tab-pane fade" id="reviews" role="tabpanel">
     <h4>See Reviews</h4>
 
@@ -84,72 +83,55 @@
     <div class="mb-3">
         <label for="reviewCourseSelect" class="form-label">Select Course</label>
         <select class="form-select" id="reviewCourseSelect">
-        <option disabled selected>Select a course</option>
-        <!-- You'll populate this from the courses[] array -->
+            <option disabled selected>Select a course</option>
+            <!-- You'll populate this from the courses[] array -->
         </select>
     </div>
 
-    <!-- Select Public/Private -->
+    <!-- Visibility Options (optional/future enhancement) -->
     <div class="mb-3">
         <label for="reviewVisibilitySelect" class="form-label">Select Visibility</label>
-        <input class="form-check" id="reviewVisibilitySelect">
+        <select class="form-select" id="reviewVisibilitySelect">
             <option value="public">Publicly Visible</option>
             <option value="private">Privately Visible</option>
-            <!-- More courses can be dynamically populated -->
-        
+        </select>
     </div>
 
-    <button class="btn btn-success" id="saveReviewBtn">Save Review</button> -->
+    <!-- Saved Reviews Display -->
     <ul class="list-group" id="savedReviewsList">
         <!-- Reviews will appear here -->
     </ul>
 
-</div>
-    
-            <!-- Schedule Section -->
-            <!-- Schedule Peer Reviews -->
-        <div class="tab-pane fade" id="schedule" role="tabpanel">
-            <h4 class="mb-4">Assign Peer Reviews</h4>
-  
-            <!-- Select Course -->
-            <div class="mb-3">
-            <label for="scheduleCourseSelect" class="form-label">Select Course</label>
-            <select class="form-select" id="scheduleCourseSelect">
-                <option disabled selected>Select a course</option>
-                <!-- Dynamically populated -->
-            </select>
-            </div>
-  
-            <!-- Select Review -->
-            <div class="mb-3">
-            <label for="scheduleReviewSelect" class="form-label">Select Review</label>
-            <select class="form-select" id="scheduleReviewSelect">
-                <option disabled selected>Select a review</option>
-                <!-- Dynamically populated -->
-            </select>
-            </div>
-  
-            <!-- Due Date -->
-            <div class="mb-3">
-            <label for="reviewDueDate" class="form-label">Due Date</label>
-            <input type="date" class="form-control" id="reviewDueDate">
-            </div>
-  
-            <!-- Assign Button -->
-            <button class="btn btn-success" id="assignReviewBtn">Assign Review</button>
-  
-            <!-- Success Alert -->
-            <div class="alert alert-success mt-3 d-none" id="assignmentSuccessAlert" role="alert">
-            Review assigned to all teams in the selected course!
-            </div>
-            <hr class="my-4">
-            <h5>Assigned Reviews</h5>
-            <ul class="list-group" id="assignedReviewsList">
-                <!-- Assigned review items will go here -->
-            </ul>
+    <hr class="my-4">
+
+    <!-- Answering Section -->
+    <h5>Answer Review</h5>
+    <form id="reviewAnswerForm" class="mb-4">
+        <div id="reviewQuestionsContainer">
+            <!-- Questions will be dynamically inserted here -->
         </div>
-  
+
+        <div class="mb-3">
+            <label for="targetUserEmail" class="form-label">Reviewing (Peer's Email)</label>
+            <input type="email" class="form-control" id="targetUserEmail" placeholder="Enter peer's email to review">
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="isPublicCheckbox">
+            <label class="form-check-label" for="isPublicCheckbox">Make response public</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+    </form>
+
+    <!-- Success Message -->
+    <div id="reviewSubmitAlert" class="alert alert-success d-none" role="alert">
+        Review submitted successfully!
+    </div>
+</div>
+
     
+
             <!-- Review Results Section -->
             <div class="tab-pane fade" id="results" role="tabpanel">
                 <h4>View Review Submissions</h4>
@@ -166,19 +148,24 @@
         </div>
     </div>
 
-    <!-- Full Review Model -->
-    <div class="model fade" id="fullReviewModel" tabindex="-1" aria-labelledby="fullReviewModelLabel" aria-hidden="true">
-        <div class="model-dialog model-lg">
-            <div class="model-content">
-                <div class="model-header">
-                    <h5 class="model-title" id="fullReviewModelLabel">Review Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="model" aria-label="Close"></button>
-                </div>
-            <div class="model-body" id="fullReviewModelBody">
-                <!-- Review content will be injected here -->
-                </div>
-            </div>
+<!-- FIXED: All 'model' → 'modal' -->
+<!-- Correct Bootstrap Modal -->
+<!-- Full Review Modal -->
+<div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="fullReviewModalLabel">Review Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body" id="fullReviewModalBody">
+          <!-- This div must have the correct ID -->
+        </div>
+      </div>
     </div>
-    
+  </div>
+  
+  
+  
+
 

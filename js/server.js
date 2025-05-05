@@ -477,6 +477,35 @@ app.delete('/delete-scheduled-review/:scheduleID', (req, res) => {
 });
 
 
+// route for getting scheduled review
+app.get('/student-assigned-reviews/:email', (req, res) => {
+    const email = req.params.email;
+
+    const query = `
+        SELECT sr.ScheduleID, sr.AssessmentID, a.Name AS ReviewTitle,
+               sr.StartDate, sr.EndDate,
+               c.CourseNumber, c.CourseName
+        FROM tblScheduledReviews sr
+        JOIN tblAssessments a ON sr.AssessmentID = a.AssessmentID
+        JOIN tblCourses c ON sr.CourseID = c.CourseID
+        JOIN tblEnrollments e ON e.CourseID = c.CourseID
+        JOIN tblUsers u ON u.UserID = e.UserID
+        WHERE u.Email = ?
+        ORDER BY sr.EndDate DESC
+    `;
+
+    db.all(query, [email], (err, rows) => {
+        if (err) {
+            console.error("Failed to fetch assigned reviews for student:", err);
+            return res.status(500).json({ error: "Database error." });
+        }
+
+        res.status(200).json({ reviews: rows });
+    });
+});
+
+
+
 //route for populating the Review Select dropdown on schedule reviews tab
 app.get('/reviews-by-course/:courseCode', (req, res) => {
     const courseCode = req.params.courseCode;
@@ -496,6 +525,64 @@ app.get('/reviews-by-course/:courseCode', (req, res) => {
         }
 
         res.json(rows);
+    });
+});
+
+
+//route for student submitting review
+app.post('/submit-review', (req, res) => {
+    const { responses } = req.body;
+
+    if (!Array.isArray(responses) || responses.length === 0) {
+        return res.status(400).json({ error: "No responses provided." });
+    }
+
+    const stmt = db.prepare(`
+        INSERT INTO tblAssessmentResponse
+        (AssessmentID, UserID, QuestionID, Response, TargetUserID, Public)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `);
+
+    db.serialize(() => {
+        responses.forEach(r => {
+            stmt.run(r.assessmentID, r.userID, r.questionID, r.response, r.targetUserID, r.public);
+        });
+
+        stmt.finalize(err => {
+            if (err) {
+                console.error("Insert error:", err);
+                return res.status(500).json({ error: "Failed to save responses." });
+            }
+            res.status(200).json({ message: "Review submitted successfully." });
+        });
+    });
+});
+
+
+
+app.get('/assessment-questions/:assessmentID', (req, res) => {
+    const assessmentID = req.params.assessmentID;
+
+    const query = `
+        SELECT QuestionID, QuestionType, QuestionNarrative, Options
+        FROM tblAssessmentQuestions
+        WHERE AssessmentID = ?
+        ORDER BY QuestionID ASC
+    `;
+
+    db.all(query, [assessmentID], (err, rows) => {
+        if (err) {
+            console.error("Failed to fetch questions:", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+
+        // Optionally parse Options field if it's JSON stored as text
+        const questions = rows.map(q => ({
+            ...q,
+            Options: q.Options ? JSON.parse(q.Options) : null
+        }));
+
+        res.status(200).json({ questions });
     });
 });
 
