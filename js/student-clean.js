@@ -313,7 +313,9 @@ function showReviewQuestionsModal(review, questions) {
             const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('fullReviewModal'));
             modal.hide();
             const reviewItem = document.querySelector(`li[data-assessment-id="${review.AssessmentID}"]`);
+            console.log("Trying to remove item:", reviewItem); // Add this
             if (reviewItem) reviewItem.remove();
+            // fetchAndDisplayAssignedReviewsForStudent();
 
 
         } catch (err) {
@@ -406,6 +408,7 @@ async function fetchAndDisplayAssignedReviewsForStudent() {
     if (!currentUser || !currentUser.Email) {
         const item = document.createElement('li');
         item.className = 'list-group-item d-flex justify-content-between align-items-start flex-column';
+    
 
         item.textContent = 'Error: No student found.';
         list.appendChild(item);
@@ -433,6 +436,7 @@ async function fetchAndDisplayAssignedReviewsForStudent() {
         reviews.forEach(review => {
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start flex-column';
+            item.setAttribute('data-assessment-id', review.AssessmentID);
         
             const content = document.createElement('div');
             content.innerHTML = `
