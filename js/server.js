@@ -909,26 +909,34 @@ db.serialize(() => {
 
 });
 // GET /review-targets/:userId/:assessmentId
- app.get('/review-targets/:userId/:assessmentId', (req, res) => {
- const { userId, assessmentId } = req.params;
-const groupQuery = `
-    SELECT gm2.UserID, u.FirstName || ' ' || u.LastName AS FullName
-    FROM tblGroupMembers gm1
-    JOIN tblGroupMembers gm2 ON gm1.GroupID = gm2.GroupID
-    JOIN tblUsers u ON gm2.UserID = u.UserID
-    WHERE gm1.UserID = ? AND gm2.UserID IS NOT NULL
-`;
+app.get('/review-targets/:userId/:assessmentId', (req, res) => {
+    const { userId, assessmentId } = req.params;
 
-db.all(groupQuery, [userId], (err, members) => {
-    if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Failed to fetch group members' });
-    }
+    const query = `
+        SELECT u.UserID, u.FirstName || ' ' || u.LastName AS FullName
+        FROM tblGroupMembers gm
+        JOIN tblUsers u ON gm.UserID = u.UserID
+        WHERE gm.GroupID = (
+            SELECT gm_inner.GroupID
+            FROM tblGroupMembers gm_inner
+            JOIN tblCourseGroups cg ON gm_inner.GroupID = cg.GroupID
+            JOIN tblAssessments a ON cg.CourseID = a.CourseID
+            WHERE gm_inner.UserID = ? AND a.AssessmentID = ?
+        )
+    `;
 
-    res.json({ members });
+    db.all(query, [userId, assessmentId], (err, members) => {
+        if (err) {
+            console.error("Error fetching review targets:", err);
+            return res.status(500).json({ error: 'Failed to fetch group members' });
+        }
+
+        res.json({ members });
+    });
 });
 
-});
+
+
 app.get('/public-feedback/:userId', (req, res) => {
     const userId = req.params.userId;
 
