@@ -1,7 +1,9 @@
+<!-- Main student dashboard container -->
 <div id="studentPage" class="container mt-5"> <h2 class="text-center mb-4">Student Dashboard</h2>
 
     ```
         <!-- Navigation Tabs -->
+         <!-- Navigation tabs for student dashboard -->
     <ul class="nav nav-tabs" id="studentTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
@@ -26,10 +28,12 @@
     
     <!-- Courses Section -->
     
+    <!-- Courses tab content -->
     <div class="tab-pane fade show active" id="courses" role="tabpanel">
         <h4>Manage Courses</h4>
         <div class="mb-4">
             <h5>Join a Course</h5>
+            <!-- Join course input field and button -->
             <div class="input-group mb-3">
                 <input type="text" class="form-control" id="joinCodeInput" placeholder="Enter Join Code">
                 <button class="btn btn-primary" id="joinCourseBtn">Join</button>
@@ -38,12 +42,14 @@
     
     ```
     <!-- Join Code Display -->
+     <!-- Displays current generated join code if applicable -->
     <div id="joinCodeDisplay" class="alert alert-info d-none" role="alert">
         Join Code: <strong id="joinCodeText"></strong>
     </div>
     
     <!-- Existing Courses Table -->
     <h5 class="mt-4">Your Courses</h5>
+    <!-- Table showing student's enrolled courses -->
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -60,6 +66,8 @@
 </div>
     
     <!-- Teams Section -->
+
+     <!-- Teams tab content -->
     <div class="tab-pane fade" id="teams" role="tabpanel">
         <h4>Your Team(s)</h4>
         <p class="text-muted">Below are the teams you are currently assigned to.</p>
@@ -70,12 +78,16 @@
     
     <!-- Reviews Section -->
     
+    <!-- Reviews tab content -->
     <div class="tab-pane fade" id="reviews" role="tabpanel">
         <h4>See Reviews</h4>
         <ul class="list-group" id="savedReviewsList">
             <!-- Reviews will appear here with "View / Answer" buttons -->
         </ul>
     </div>
+    <!--Logout Section-->
+
+    <!--Logout tab-->
     <div class="tab-pane fade" id="logout" role="tabpanel">
         <h4>Logout</h4>
         <p>Are you sure you want to log out?</p>
@@ -85,6 +97,7 @@
     
     <!-- ✅ Review Results Section -->
     
+    <!-- Review results tab content -->
     <div class="fade" id="results" role="tabpanel">
         <h4>View Review Submissions</h4>
         <button class="btn btn-outline-info my-2" id="viewPublicReviewsBtn">View Public Reviews</button>
@@ -99,6 +112,7 @@
     
       <!-- ✅ Bootstrap Modal for Review Form -->
     
+      <!-- Modal for displaying full review questions and form -->
     <div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
           <div class="modal-content">
