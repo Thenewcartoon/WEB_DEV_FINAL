@@ -1,14 +1,19 @@
 // const { stringify } = require("uuid");
 
 //global variables
+// Declare a constant or variable
 const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
+// Declare a constant or variable
 const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
+// Declare a constant or variable
 let users = []
+// Declare a constant or variable
 let userData = []
 //end global variables
 
 // Login button event listener. all validation and click events for Login page must be handled inside this event
 document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
+// Send HTTP request using Fetch API
     fetch("components/login.html") //makes http request to get the content of the login.html file from the components directory
     .then(response => response.text())  //takes response from fetch request and extracts its text content
     .then(html => { //takes the html text and runs code in this callback function
@@ -23,7 +28,9 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         
         //change title for if user selects student or instructor
         document.querySelector('#LoginroleSelect').addEventListener('change', function() {
+// Declare a constant or variable
             const selectedRole = document.querySelector('#LoginroleSelect').value;
+// Declare a constant or variable
             const loginTitleResponsive = document.querySelector('#loginTitleResponsive');
 
             // Show the contact info section if the role is "student"
@@ -37,10 +44,15 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         //Click event for clicking login button 
         document.querySelector('#btnLogin').addEventListener('click', async function() {
 
+// Declare a constant or variable
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
+// Declare a constant or variable
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
+// Declare a constant or variable
             let role = document.querySelector('#LoginroleSelect').value  //grabs what role the user selected (student or instructor)
+// Declare a constant or variable
             let blnError = false
+// Declare a constant or variable
             let strMessage = '' 
             // let strIsPasswordCorrect = true
             
@@ -78,6 +90,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
             }
             // If the user input follows all of the proper format, send it to the backend for validation.
             try{
+// Send HTTP request using Fetch API
                 const response = await fetch('http://localhost:8000/validateUserLogin', {
                     method: 'POST',
                     headers: {
@@ -104,6 +117,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         
                         //redirect to appropriate role page
                         if (role === 'instructor') {
+// Send HTTP request using Fetch API
                             fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
                             .then(res => res.text())
                             .then(html => {
@@ -115,6 +129,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                                 initalizeInstructorPage()
                         })
                         }else if(role === 'student') {
+// Send HTTP request using Fetch API
                             fetch("components/student.html")
                             .then(res => res.text())
                             .then(html => {
@@ -142,10 +157,13 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
 
         // Back to landing screen button
         document.querySelector('#btnSwapLogin').addEventListener('click', function () {
+// Declare a constant or variable
             let divContent = document.querySelector('#divContent');
         
             // Remove login and registration forms from the page
+// Declare a constant or variable
             let loginForm = document.querySelector('#frmLogin');
+// Declare a constant or variable
             let registerForm = document.querySelector('#frmRegister');
         
             if (loginForm) loginForm.remove(); // Removes login form completely
@@ -162,6 +180,7 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
 
 // Register button event listener. all validation and click events for registration page must be handled inside this event
 document.querySelector('#btnRegisterButton').addEventListener('click', (event) => {
+// Send HTTP request using Fetch API
     fetch("components/registration.html") //makes http request to get the content of the registration.html file from the components directory
     .then(response => response.text())  //takes response from fetch request and extracts its text content
     .then(html => { //takes the html text and runs code in this callback function
@@ -176,7 +195,9 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
         
         //change event for if user selects student or instructor
         document.querySelector('#RegistrationroleSelect').addEventListener('change', function() {
+// Declare a constant or variable
             const selectedRole = document.querySelector('#RegistrationroleSelect').value;
+// Declare a constant or variable
             const studentContact = document.querySelector('#studentContact');
 
             // Show the contact info section if the role is "student"
@@ -189,7 +210,9 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
 
         // adds a change event for whenever user selects their method of contact (teams, discord, or mobile).
         document.querySelector('#contactType').addEventListener('change', function() {
+// Declare a constant or variable
             const selectedType = document.querySelector('#contactType').value;
+// Declare a constant or variable
             const txtContact = document.querySelector('#txtContact');
 
             // Update the placeholder text based on the selected contact type
@@ -204,15 +227,24 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
 
         //Click event for clicking register button 
         document.querySelector('#btnRegister').addEventListener('click', function() {
+// Declare a constant or variable
             let strFirstName = document.querySelector('#txtFirstName').value.trim() //grabs what the user entered into the first name box
+// Declare a constant or variable
             let strLastName = document.querySelector('#txtLastName').value.trim() //grabs what the user entered into the last name box
+// Declare a constant or variable
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
+// Declare a constant or variable
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
+// Declare a constant or variable
             let role = document.querySelector('#RegistrationroleSelect').value  //grabs what role the user selected (student or instructor)
+// Declare a constant or variable
             let contactType = document.querySelector('#contactType').value;  //grabs which contact type the user selected ()
+// Declare a constant or variable
             let contactInfo = document.querySelector('#txtContact').value.trim() //grabs what the user entered into the contact info text box
 
+// Declare a constant or variable
             let blnError = false
+// Declare a constant or variable
             let strMessage = '' 
             
             //makes sure first name is actually a name
@@ -278,6 +310,7 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
                 });
             } else {
                 // ✅ New code: Send user info to the server
+// Send HTTP request using Fetch API
                 fetch('http://localhost:8000/register', {
                     method: 'POST',
                     headers: {
@@ -324,10 +357,13 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
 
         // Back to landing screen button
         document.querySelector('#btnSwapLogin').addEventListener('click', function () {
+// Declare a constant or variable
             let divContent = document.querySelector('#divContent');
         
             // Remove login and registration forms from the page
+// Declare a constant or variable
             let loginForm = document.querySelector('#frmLogin');
+// Declare a constant or variable
             let registerForm = document.querySelector('#frmRegister');
         
             if (loginForm) loginForm.remove(); // Removes login form completely
@@ -342,6 +378,7 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
 });
 
 async function loginUser(username, password) {
+// Send HTTP request using Fetch API
     const response = await fetch('http://localhost:8000/validateUserLogin', {
         method: 'POST',
         headers: {
@@ -353,6 +390,7 @@ async function loginUser(username, password) {
         })
     });
     
+// Declare a constant or variable
     const data = await response.json();
     
     if (response.ok) {

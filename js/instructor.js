@@ -2,18 +2,27 @@
 // instructor.js
 
 //global variables
+// Declare a constant or variable
 let courses = []
+// Declare a constant or variable
 let teams = []
+// Declare a constant or variable
 let questions = [] //global questions array
+// Declare a constant or variable
 let reviews = []  //globalreviews array
+// Declare a constant or variable
 let assignments = []
+// Declare a constant or variable
 let editingGroupId = null;
 
 //***************************************************FUNCTIONS****************************************************************************************/
 
 // Function to generate a 6-character alphanumeric join code
+// Define a JavaScript function
 function generateJoinCode(length = 6) {
+// Declare a constant or variable
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+// Declare a constant or variable
     let code = '';
     for (let i = 0; i < length; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -31,14 +40,18 @@ async function refreshAllCourseDropdowns() {
 }
 
 //function for displaying each question added. it will show the options if the question has any. Also will have an edit and delete button for the questions
+// Define a JavaScript function
 function renderQuestionPreview(question) {
+// Declare a constant or variable
     const list = document.getElementById('reviewQuestionList')  //Find the <ul> element that will hold all previewed questions
 
+// Declare a constant or variable
     const item = document.createElement('li') //Create a new <li> element for the current question
     item.className = 'list-group-item' //Bootstrap styling
     item.dataset.id = question.id; //Store the unique ID on the element for reference
 
     // Create the inner content
+// Declare a constant or variable
     let html = `<strong>${question.text}</strong><br><em>Type: ${question.type}</em>`
 
     // Display options if applicable
@@ -76,6 +89,7 @@ function renderQuestionPreview(question) {
         document.getElementById('questionText').value = question.text;
 
         //clear current options in the UI before redoing it
+// Declare a constant or variable
         const optionsContainer = document.getElementById('questionOptionsContainer');
         optionsContainer.innerHTML = '';
         optionsContainer.style.display = 'none';
@@ -85,8 +99,10 @@ function renderQuestionPreview(question) {
             document.getElementById('questionType').dispatchEvent(new Event('change')) //Likert is pre-defined, so just re-trigger the dropdown change to rebuild UI
         } else if (question.type === 'multiple-choice' || question.type === 'multi-select') {
             document.getElementById('questionType').dispatchEvent(new Event('change')) //Same: trigger the change to set up the container
+// Declare a constant or variable
             const optionList = document.getElementById('mcOptionList') //manually add back the saved options into the option list
             question.options.forEach(opt => {
+// Declare a constant or variable
                 const optionInput = document.createElement('div')
                 optionInput.className = 'input-group mb-2'
                 optionInput.innerHTML = `
@@ -108,12 +124,15 @@ function renderQuestionPreview(question) {
 
 
 //***********Function for displaying courses inside the Select a Course Box under the reviews tab */
+// Define a JavaScript function
 function populateReviewCourseDropdown() {
+// Declare a constant or variable
     const reviewCourseSelect = document.getElementById('reviewCourseSelect');
     if (reviewCourseSelect) {
         reviewCourseSelect.innerHTML = '<option disabled selected>Select a course</option>';
 
         courses.forEach(course => {
+// Declare a constant or variable
             const option = document.createElement('option');
             option.value = course.CourseNumber;
             option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
@@ -125,11 +144,14 @@ function populateReviewCourseDropdown() {
 
 //******************Function for displaying Saved Reviews**************///
 async function displaySavedReviews() {
+// Declare a constant or variable
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+// Declare a constant or variable
     const list = document.getElementById('savedReviewsList');
     list.innerHTML = ''; // Clear old list
 
     if (!currentUser || !currentUser.UserID) {
+// Declare a constant or variable
         const item = document.createElement('li');
         item.className = 'list-group-item';
         item.textContent = 'Error: No user found.';
@@ -138,12 +160,16 @@ async function displaySavedReviews() {
     }
 
     try {
+// Send HTTP request using Fetch API
         const response = await fetch(`http://localhost:8000/instructor-assessments/${currentUser.UserID}`);
+// Declare a constant or variable
         const data = await response.json();
 
+// Declare a constant or variable
         const assessments = data.assessments;
 
         if (!assessments || assessments.length === 0) {
+// Declare a constant or variable
             const item = document.createElement('li');
             item.className = 'list-group-item';
             item.textContent = 'No reviews saved yet.';
@@ -152,28 +178,36 @@ async function displaySavedReviews() {
         }
 
         for (const assessment of assessments) {
+// Declare a constant or variable
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
+// Declare a constant or variable
             const content = document.createElement('div');
             content.innerHTML = `
                 <strong>${assessment.Name}</strong><br>
                 Course: ${assessment.CourseNumber} (${assessment.CourseName})
             `;
 
+// Declare a constant or variable
             const btnGroup = document.createElement('div');
             btnGroup.className = 'btn-group btn-group-sm';
 
             // ---------------- View Button ------------------
+// Declare a constant or variable
             const viewBtn = document.createElement('button');
             viewBtn.className = 'btn btn-outline-secondary';
             viewBtn.textContent = 'View';
             viewBtn.addEventListener('click', async () => {
                 try {
+// Send HTTP request using Fetch API
                     const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
+// Declare a constant or variable
                     const data = await res.json();
 
+// Declare a constant or variable
                     const modelBody = document.getElementById('fullReviewModelBody');
+// Declare a constant or variable
                     let html = `
                         <p><strong>Title:</strong> ${data.title}</p>
                         <p><strong>Course:</strong> ${assessment.CourseNumber}</p>
@@ -189,6 +223,7 @@ async function displaySavedReviews() {
                     });
 
                     modelBody.innerHTML = html;
+// Declare a constant or variable
                     const modal = new bootstrap.Modal(document.getElementById('fullReviewModel'));
                     modal.show();
                 } catch (err) {
@@ -198,12 +233,15 @@ async function displaySavedReviews() {
             });
 
             // ---------------- Edit Button ------------------
+// Declare a constant or variable
             const editBtn = document.createElement('button');
             editBtn.className = 'btn btn-outline-primary';
             editBtn.textContent = 'Edit';
             editBtn.addEventListener('click', async () => {
                 try {
+// Send HTTP request using Fetch API
                     const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
+// Declare a constant or variable
                     const data = await res.json();
 
                     // Load review data into form
@@ -215,6 +253,7 @@ async function displaySavedReviews() {
                     questions.forEach(renderQuestionPreview);
 
                     // Delete assessment from DB so it doesn’t duplicate on re-save
+// Send HTTP request using Fetch API
                     await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
                         method: 'DELETE'
                     });
@@ -228,10 +267,12 @@ async function displaySavedReviews() {
             });
 
             // ---------------- Delete Button ------------------
+// Declare a constant or variable
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-outline-danger';
             deleteBtn.textContent = 'Delete';
             deleteBtn.addEventListener('click', async () => {
+// Declare a constant or variable
                 const confirmed = await Swal.fire({
                     title: 'Are you sure?',
                     text: 'This will permanently delete the review.',
@@ -242,6 +283,7 @@ async function displaySavedReviews() {
 
                 if (confirmed.isConfirmed) {
                     try {
+// Send HTTP request using Fetch API
                         await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
                             method: 'DELETE'
                         });
@@ -265,6 +307,7 @@ async function displaySavedReviews() {
 
     } catch (err) {
         console.error("Error fetching assessments:", err);
+// Declare a constant or variable
         const item = document.createElement('li');
         item.className = 'list-group-item';
         item.textContent = 'Failed to load reviews.';
@@ -276,14 +319,18 @@ async function displaySavedReviews() {
 
 
 //*************Function for filling in the dropdowns on the schedule tab***************** */
+// Define a JavaScript function
 function populateScheduleDropdowns() {
+// Declare a constant or variable
     const courseSelect = document.getElementById('scheduleCourseSelect');
+// Declare a constant or variable
     const reviewSelect = document.getElementById('scheduleReviewSelect');
 
     // Populate courses
     if (courseSelect) {
         courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
         courses.forEach(course => {
+// Declare a constant or variable
             const opt = document.createElement('option');
             opt.value = course.CourseNumber;
             opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
@@ -295,6 +342,7 @@ function populateScheduleDropdowns() {
     if (reviewSelect) {
         reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
         reviews.forEach(review => {
+// Declare a constant or variable
             const opt = document.createElement('option');
             opt.value = review.id;
             opt.textContent = review.title;
@@ -305,11 +353,14 @@ function populateScheduleDropdowns() {
 
 //Function for displaying the assigned reviews created by an instructor
 async function displayAssignedReviews() {
+// Declare a constant or variable
     const currentUser = getCurrentUser();
+// Declare a constant or variable
     const list = document.getElementById('assignedReviewsList');
     list.innerHTML = '';
 
     if (!currentUser || !currentUser.UserID) {
+// Declare a constant or variable
         const item = document.createElement('li');
         item.className = 'list-group-item';
         item.textContent = 'Error: No instructor found.';
@@ -318,11 +369,15 @@ async function displayAssignedReviews() {
     }
 
     try {
+// Send HTTP request using Fetch API
         const response = await fetch(`http://localhost:8000/scheduled-reviews/${currentUser.UserID}`);
+// Declare a constant or variable
         const data = await response.json();
+// Declare a constant or variable
         const assignments = data.scheduledReviews;
 
         if (assignments.length === 0) {
+// Declare a constant or variable
             const item = document.createElement('li');
             item.className = 'list-group-item';
             item.textContent = 'No reviews have been assigned yet.';
@@ -331,9 +386,11 @@ async function displayAssignedReviews() {
         }
 
         assignments.forEach(assign => {
+// Declare a constant or variable
             const item = document.createElement('li');
             item.className = 'list-group-item d-flex justify-content-between align-items-start';
         
+// Declare a constant or variable
             const content = document.createElement('div');
             content.innerHTML = `
                 <strong>${assign.ReviewTitle}</strong><br>
@@ -341,14 +398,17 @@ async function displayAssignedReviews() {
                 Due: ${assign.DueDate}
             `;
         
+// Declare a constant or variable
             const btnGroup = document.createElement('div');
             btnGroup.className = 'btn-group btn-group-sm';
         
             // ====== DELETE BUTTON ======
+// Declare a constant or variable
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-outline-danger';
             deleteBtn.textContent = 'Delete';
             deleteBtn.addEventListener('click', async () => {
+// Declare a constant or variable
                 const confirm = await Swal.fire({
                     title: "Are you sure?",
                     text: "This will permanently delete the assignment.",
@@ -360,10 +420,12 @@ async function displayAssignedReviews() {
                 if (!confirm.isConfirmed) return;
         
                 try {
+// Send HTTP request using Fetch API
                     const response = await fetch(`http://localhost:8000/delete-scheduled-review/${assign.ScheduleID}`, {
                         method: 'DELETE'
                     });
         
+// Declare a constant or variable
                     const result = await response.json();
                     if (!response.ok) throw new Error(result.error);
         
@@ -385,6 +447,7 @@ async function displayAssignedReviews() {
 
     } catch (err) {
         console.error("Error loading assigned reviews:", err);
+// Declare a constant or variable
         const item = document.createElement('li');
         item.className = 'list-group-item';
         item.textContent = 'Failed to load assigned reviews.';
@@ -394,8 +457,11 @@ async function displayAssignedReviews() {
 
 
 
+// Define a JavaScript function
 function populateReviewResultsDropdowns() {
+// Declare a constant or variable
     const courseSelect = document.getElementById('resultsCourseSelect');
+// Declare a constant or variable
     const reviewSelect = document.getElementById('resultsReviewSelect');
 
     if (!courseSelect || !reviewSelect) return;
@@ -403,6 +469,7 @@ function populateReviewResultsDropdowns() {
     // Populate course dropdown
     courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
     courses.forEach(course => {
+// Declare a constant or variable
         const option = document.createElement('option');
         option.value = course.CourseNumber;
         option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
@@ -412,6 +479,7 @@ function populateReviewResultsDropdowns() {
     // Populate review dropdown
     reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
     reviews.forEach(review => {
+// Declare a constant or variable
         const option = document.createElement('option');
         option.value = review.id;
         option.textContent = review.title;
@@ -421,17 +489,23 @@ function populateReviewResultsDropdowns() {
 
 
 
+// Define a JavaScript function
 function renderReviewResults() {
+// Declare a constant or variable
     const courseCode = document.getElementById('resultsCourseSelect').value;
+// Declare a constant or variable
     const reviewId = document.getElementById('resultsReviewSelect').value;
+// Declare a constant or variable
     const list = document.getElementById('reviewResultsList');
 
     list.innerHTML = ''; // Clear old results
 
     // Filter responses for this course + review
+// Declare a constant or variable
     const filtered = responses.filter(r => r.courseCode === courseCode && r.reviewId === reviewId);
 
     if (filtered.length === 0) {
+// Declare a constant or variable
         const li = document.createElement('li');
         li.className = 'list-group-item';
         li.textContent = 'No submissions found for this review.';
@@ -440,6 +514,7 @@ function renderReviewResults() {
         }
 
     filtered.forEach(r => {
+// Declare a constant or variable
         const item = document.createElement('li');
         item.className = 'list-group-item';
         item.innerHTML = `
@@ -452,10 +527,13 @@ function renderReviewResults() {
     }
 
 //function for displaying reports
+// Define a JavaScript function
 function renderReportsForCourse(courseCode) {
+// Declare a constant or variable
     const list = document.getElementById('reportResultsList');
     list.innerHTML = '';
 
+// Declare a constant or variable
     const item = document.createElement('li');
     item.className = 'list-group-item text-muted';
     item.innerHTML = `
@@ -466,13 +544,16 @@ function renderReportsForCourse(courseCode) {
 
 
 
+// Define a JavaScript function
 function populateReportCourseDropdown() {
+// Declare a constant or variable
     const select = document.getElementById('reportCourseSelect');
     if (!select) return;
 
     select.innerHTML = '<option disabled selected>Select a course</option>';
 
     courses.forEach(course => {
+// Declare a constant or variable
         const opt = document.createElement('option');
         opt.value = course.CourseNumber;
         opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
@@ -481,13 +562,16 @@ function populateReportCourseDropdown() {
 }
 
 
+// Define a JavaScript function
 function getCurrentUser() {
+// Declare a constant or variable
     const userStr = localStorage.getItem('currentUser');
     return userStr ? JSON.parse(userStr) : null;
 }
 
 
 async function fetchAndDisplayCourses() {
+// Declare a constant or variable
     const currentUser = getCurrentUser();
     if (!currentUser) {
         Swal.fire("Error", "User not logged in.", "error");
@@ -495,6 +579,7 @@ async function fetchAndDisplayCourses() {
     }
 
     try {
+// Send HTTP request using Fetch API
         const response = await fetch(`http://localhost:8000/courses/${currentUser.UserID}`, {
             method: 'GET',
             credentials: 'include'
@@ -504,17 +589,22 @@ async function fetchAndDisplayCourses() {
             throw new Error('Failed to fetch courses');
         }
 
+// Declare a constant or variable
         const data = await response.json();
+// Declare a constant or variable
         const coursesFromDB = data.courses;
         courses = coursesFromDB;
 
         // Filter courses by instructor's email
+// Declare a constant or variable
         const instructorCourses = coursesFromDB;
 
+// Declare a constant or variable
         const courseTableBody = document.getElementById('courseTableBody');
         courseTableBody.innerHTML = '';
 
         instructorCourses.forEach(course => {
+// Declare a constant or variable
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>${course.CourseName}</td>
@@ -528,10 +618,13 @@ async function fetchAndDisplayCourses() {
             `;
 
             // Set up the View Students button
+// Declare a constant or variable
             const viewButton = newRow.querySelector('.btn-outline-info');
             viewButton.addEventListener('click', async () => {
                 try {
+// Send HTTP request using Fetch API
                     const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}/students`);
+// Declare a constant or variable
                     const result = await res.json();
 
                     if (!res.ok) {
@@ -539,6 +632,7 @@ async function fetchAndDisplayCourses() {
                         return;
                     }
 
+// Declare a constant or variable
                     const studentList = result.students.map(s => `${s.FirstName} ${s.LastName} (${s.Email})`).join('<br>');
 
                     Swal.fire({
@@ -554,15 +648,18 @@ async function fetchAndDisplayCourses() {
             });
 
             // Set up the Delete button
+// Declare a constant or variable
             const deleteButton = newRow.querySelector('.btn-outline-danger');
             deleteButton.addEventListener('click', async () => {
                 try {
+// Send HTTP request using Fetch API
                     const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}`, {
                         method: 'DELETE',
                         credentials: 'include'
                     });
 
                     if (!res.ok) {
+// Declare a constant or variable
                         const result = await res.json();
                         Swal.fire("Error", result.error || "Failed to delete course.", "error");
                         return;
@@ -589,11 +686,14 @@ async function fetchAndDisplayCourses() {
 
 //populating select course drop down on teams page
 async function populateTeamCourseDropdown() {
+// Declare a constant or variable
     const courseSelect = document.getElementById('teamCourseSelect');
     if (!courseSelect) return;
 
     // ⛳️ Get instructor ID from localStorage or session
+// Declare a constant or variable
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+// Declare a constant or variable
     const UserId = currentUser?.UserID;
 
     if (!UserId) {
@@ -602,7 +702,9 @@ async function populateTeamCourseDropdown() {
     }
 
     try {
+// Send HTTP request using Fetch API
         const response = await fetch(`http://localhost:8000/courses/${UserId}`);
+// Declare a constant or variable
         const data = await response.json();
 
         if (!response.ok) {
@@ -614,6 +716,7 @@ async function populateTeamCourseDropdown() {
         courseSelect.innerHTML = '<option selected disabled>Select a course</option>';
 
         data.courses.forEach(course => {
+// Declare a constant or variable
             const option = document.createElement('option');
             option.value = course.CourseNumber;
             option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
@@ -625,18 +728,24 @@ async function populateTeamCourseDropdown() {
 }
 
 //display students based on the selected course
+// Define a JavaScript function
 function setupCourseStudentListener() {
+// Declare a constant or variable
     const courseSelect = document.getElementById('teamCourseSelect');
+// Declare a constant or variable
     const studentContainer = document.getElementById('teams');
 
     if (!courseSelect || !studentContainer) return;
 
     courseSelect.addEventListener('change', async () => {
+// Declare a constant or variable
         const courseCode = courseSelect.value;
         if (!courseCode) return;
 
         try {
+// Send HTTP request using Fetch API
             const response = await fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/students`);
+// Declare a constant or variable
             const data = await response.json();
 
             if (!response.ok) {
@@ -645,20 +754,24 @@ function setupCourseStudentListener() {
             }
 
             // Clear existing checkboxes
+// Declare a constant or variable
             const formCheckElements = studentContainer.querySelectorAll('.form-check');
             formCheckElements.forEach(el => el.remove());
 
             // Dynamically create new checkboxes
             data.students.forEach((student, index) => {
+// Declare a constant or variable
                 const formCheck = document.createElement('div');
                 formCheck.className = 'form-check';
 
+// Declare a constant or variable
                 const input = document.createElement('input');
                 input.type = 'checkbox';
                 input.className = 'form-check-input';
                 input.id = `student-${index}`;
                 input.value = student.Email;
 
+// Declare a constant or variable
                 const label = document.createElement('label');
                 label.className = 'form-check-label';
                 label.htmlFor = input.id;
@@ -678,14 +791,18 @@ function setupCourseStudentListener() {
 
 
 //Displays teams the instructor has created for specific course. This is for the instructor side
+// Define a JavaScript function
 function fetchAndDisplayTeamsForCourse(courseCode) {
+// Send HTTP request using Fetch API
     fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/teams`)
         .then(res => res.json())
         .then(data => {
+// Declare a constant or variable
             const teamList = document.getElementById('teamList');
             teamList.innerHTML = '';
 
             data.teams.forEach(team => {
+// Declare a constant or variable
                 const listItem = document.createElement('li');
                 listItem.className = 'list-group-item';
                 listItem.innerHTML = `
@@ -704,12 +821,14 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
                 teamList.appendChild(listItem);
 
                 // 🔧 Wire up Edit button
+// Declare a constant or variable
                 const editBtn = listItem.querySelector('.btn-edit-team');
                 editBtn.addEventListener('click', () => {
                     editingGroupId = team.groupId;  // 👈 make sure this comes from backend
                     document.getElementById('teamName').value = team.teamName;
                     document.getElementById('teamCourseSelect').value = courseCode;
 
+// Declare a constant or variable
                     const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
                     studentCheckboxes.forEach(cb => {
                         cb.checked = team.members.includes(cb.value);
@@ -717,8 +836,10 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
                 });
 
                 // 🔧 Wire up Delete button (optional for now)
+// Declare a constant or variable
                 const deleteBtn = listItem.querySelector('.btn-delete-team');
                 deleteBtn.addEventListener('click', async () => {
+// Declare a constant or variable
                     const confirmed = await Swal.fire({
                         title: "Are you sure?",
                         text: "This will permanently delete the team.",
@@ -730,10 +851,12 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
                     if (!confirmed.isConfirmed) return;
 
                     try {
+// Send HTTP request using Fetch API
                         const response = await fetch(`http://localhost:8000/teams/${team.groupId}`, {
                             method: 'DELETE'
                         });
 
+// Declare a constant or variable
                         const result = await response.json();
 
                         if (!response.ok) {
@@ -775,72 +898,44 @@ function fetchAndDisplayTeamsForCourse(courseCode) {
  * - Schedule assignments dropdowns
  * - Tab event listeners and DOM hooks
  */
+// Define a JavaScript function
 function initalizeInstructorPage() {
     
+// Declare a constant or variable
         const joinCodeDisplay = document.getElementById('joinCodeDisplay');
+// Declare a constant or variable
         const joinCodeText = document.getElementById('joinCodeText');
+// Declare a constant or variable
         const generateJoinCodeBtn = document.getElementById('generateJoinCode');
+// Declare a constant or variable
         const createCourseForm = document.getElementById('createCourseForm');
+// Declare a constant or variable
         const courseTableBody = document.getElementById('courseTableBody');
     
+// Declare a constant or variable
         const createTeamBtn = document.getElementById('createTeamBtn');
+// Declare a constant or variable
         const teamList = document.getElementById('teamList');
     
+// Declare a constant or variable
         let currentJoinCode = ''; // Store latest generated join code (optional)
 
         refreshAllCourseDropdowns().then(() => {
             setupCourseStudentListener();
         });
     
-
-        // When course is selected in the "Review Results" tab, fetch reviews for that course
-        document.getElementById('resultsCourseSelect').addEventListener('change', async function () {
-            const selectedCourse = this.value;
-            const reviewSelect = document.getElementById('resultsReviewSelect');
-            reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
-            document.getElementById('reviewResultsList').innerHTML = ''; // Clear existing results
-
-            if (!selectedCourse) return;
-
-            try {
-                const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
-                const data = await response.json();
-
-                if (!response.ok || !data || data.length === 0) {
-                    const opt = document.createElement('option');
-                    opt.disabled = true;
-                    opt.textContent = 'No reviews found';
-                    reviewSelect.appendChild(opt);
-                    return;
-                }
-
-                data.forEach(review => {
-                    const option = document.createElement('option');
-                    option.value = review.AssessmentID;
-                    option.textContent = review.Name;
-                    reviewSelect.appendChild(option);
-                });
-
-            } catch (err) {
-                console.error("Error loading review results:", err);
-            }
-        });
-
-        document.getElementById('resultsReviewSelect').addEventListener('change', () => {
-            document.getElementById('viewReviewResultsBtn').click(); // Simulate click to load results
-        });
-        
-
-
         
         //click event for the logout button on the instructor page
+// Declare a constant or variable
         const logoutBtn = document.getElementById('btnLogout');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
+// Declare a constant or variable
                 const instructorPage = document.getElementById('instructorPage');
                 if (instructorPage) instructorPage.remove();
 
                 document.body.className = 'bg-dark d-flex align-items-center justify-content-center min-vh-100';
+// Declare a constant or variable
                 const selectDiv = document.getElementById('divSelect');
                 if (selectDiv) selectDiv.style.display = 'block';
             
@@ -856,6 +951,7 @@ function initalizeInstructorPage() {
         //*******************************************Reports Tab**************************************** */
         //click event for generate reports button. Using a simulation with the 
         document.getElementById('generateReportBtn').addEventListener('click', () => {
+// Declare a constant or variable
             const selectedCourse = document.getElementById('reportCourseSelect').value;
             if (!selectedCourse) {
                 alert("Please select a course to generate the report.");
@@ -867,41 +963,34 @@ function initalizeInstructorPage() {
         
         //---------------------------------------------------------------------------------------------------------------
         //*************************************Review Results********************************************************* */
-        document.getElementById('viewReviewResultsBtn').addEventListener('click', async () => {
-            const reviewSelect = document.getElementById('resultsReviewSelect');
-            const selectedReviewId = reviewSelect.value;
+        document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
+// Declare a constant or variable
+            const selectedCourse = document.getElementById('resultsCourseSelect').value;
+// Declare a constant or variable
+            const selectedReview = document.getElementById('resultsReviewSelect').value;
         
-            const list = document.getElementById('reviewResultsList');
-            list.innerHTML = ''; // Clear any existing results
-        
-            if (!selectedReviewId) return;
-        
-            try {
-                const res = await fetch(`http://localhost:8000/review-results/${selectedReviewId}`);
-                const data = await res.json();
-        
-                if (!res.ok) throw new Error(data.error || 'Failed to load review results');
-        
-                data.results.forEach(entry => {
-                    const item = document.createElement('li');
-                    item.className = 'list-group-item';
-                    item.innerHTML = `
-                        <strong>Reviewer:</strong> ${entry.ReviewerName} <br>
-                        <strong>Target:</strong> ${entry.TargetName} <br>
-                        <strong>Question:</strong> ${entry.QuestionNarrative} <br>
-                        <strong>Response:</strong> ${entry.Response} <br>
-                        <strong>Visibility:</strong> ${entry.Public ? 'Public' : 'Private'}
-                    `;
-                    list.appendChild(item);
-                });
-        
-            } catch (err) {
-                console.error('Error loading results:', err);
-                alert('Failed to fetch review results.');
+            // Simple validation
+            if (!selectedCourse || !selectedReview) {
+                alert("Please select both a course and a review.");
+                return;
             }
+        
+            // Simulate what will eventually be a backend call
+            console.log("Ready to fetch results for:");
+            console.log("Course Code:", selectedCourse);
+            console.log("Review ID:", selectedReview);
+        
+            // Future backend fetch will go here
+        
+            // Show a placeholder for now
+// Declare a constant or variable
+            const list = document.getElementById('reviewResultsList');
+            list.innerHTML = `
+                <li class="list-group-item text-muted">
+                    Placeholder: Review results will be loaded here from the backend.
+                </li>
+            `;
         });
-        
-        
         
         //***************************************End of Review Results*********************************************** */
         //--------------------------------------------------------------------------------------------------------------
@@ -909,8 +998,11 @@ function initalizeInstructorPage() {
         //***************************************Schedule Reviews Tab*************************************************** */
         //event listener for assign review button
         document.getElementById('assignReviewBtn').addEventListener('click', async () => {
+// Declare a constant or variable
             const courseCode = document.getElementById('scheduleCourseSelect').value;
+// Declare a constant or variable
             const assessmentID = document.getElementById('scheduleReviewSelect').value;
+// Declare a constant or variable
             const dueDate = document.getElementById('reviewDueDate').value;
         
             // Validate form
@@ -920,6 +1012,7 @@ function initalizeInstructorPage() {
             }
         
             // Get CourseID from selected course code (assumes courses[] is already loaded)
+// Declare a constant or variable
             const course = courses.find(c => c.CourseNumber === courseCode);
 
             if (!course) {
@@ -927,6 +1020,7 @@ function initalizeInstructorPage() {
                 return;
             }
         
+// Declare a constant or variable
             const payload = {
                 assessmentID,
                 courseID: course.CourseID,
@@ -934,12 +1028,14 @@ function initalizeInstructorPage() {
             };
         
             try {
+// Send HTTP request using Fetch API
                 const response = await fetch('http://localhost:8000/assign-review', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
         
+// Declare a constant or variable
                 const result = await response.json();
                 if (!response.ok) throw new Error(result.error);
         
@@ -969,7 +1065,9 @@ function initalizeInstructorPage() {
         //--------------------------------------------------------------------------------------------------------------------------------------
         //Event listener for when instructor selects a different question
         document.getElementById('questionType').addEventListener('change', function () {
+// Declare a constant or variable
             const selectedType = this.value //value of the selected question
+// Declare a constant or variable
             const optionsContainer = document.getElementById('questionOptionsContainer') //questionOptionsContainer value stored in options container
         
             // Always reset first
@@ -979,8 +1077,10 @@ function initalizeInstructorPage() {
             if (selectedType === 'likert') {
                 optionsContainer.style.display = 'block'
         
+// Declare a constant or variable
                 const likertOptions = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] //scale options
                 likertOptions.forEach(label => { //for each value in the scale, create a new <div> and sets the inner html to include a disabled radio input (so the instructor cant click it) and a label that shows the selected likert option
+// Declare a constant or variable
                     const div = document.createElement('div')
                     div.className = 'form-check'
                     div.innerHTML = `
@@ -993,21 +1093,25 @@ function initalizeInstructorPage() {
             } else if (selectedType === 'multiple-choice' || selectedType === 'multi-select') {
                 optionsContainer.style.display = 'block' //shows the extra options
                 //label for the section
+// Declare a constant or variable
                 const label = document.createElement('label')
                 label.className = 'form-label';
                 label.textContent = 'Answer Choices:'
                 optionsContainer.appendChild(label)
                 //container that holds all the answer options
+// Declare a constant or variable
                 const optionList = document.createElement('div')
                 optionList.id = 'mcOptionList'
                 optionsContainer.appendChild(optionList)
                 //add option button that lets instructor add more answer choices
+// Declare a constant or variable
                 const addBtn = document.createElement('button')
                 addBtn.type = 'button'
                 addBtn.className = 'btn btn-sm btn-outline-secondary mt-2'
                 addBtn.textContent = 'Add Option';
                 //add new input row with text box and remove button
                 addBtn.addEventListener('click', () => {
+// Declare a constant or variable
                     const optionInput = document.createElement('div')
                     optionInput.className = 'input-group mb-2'
                     optionInput.innerHTML = `
@@ -1028,8 +1132,11 @@ function initalizeInstructorPage() {
         })
         
         document.getElementById('addQuestionBtn').addEventListener('click', () => {
+// Declare a constant or variable
             const type = document.getElementById('questionType').value;
+// Declare a constant or variable
             const text = document.getElementById('questionText').value.trim();
+// Declare a constant or variable
             const optionsContainer = document.getElementById('questionOptionsContainer');
         
             if (!type || !text) { //validation to make sure question type is selected or that a question is created
@@ -1037,11 +1144,14 @@ function initalizeInstructorPage() {
                 return;
             }
         
+// Declare a constant or variable
             let options = [];
         
             if (type === 'multiple-choice' || type === 'multi-select') {
+// Declare a constant or variable
                 const optionInputs = optionsContainer.querySelectorAll('#mcOptionList input');
                 optionInputs.forEach(input => {
+// Declare a constant or variable
                     const val = input.value.trim();
                     if (val !== '') {
                         options.push(val);
@@ -1057,6 +1167,7 @@ function initalizeInstructorPage() {
             }
         
             // Create question object
+// Declare a constant or variable
             const question = {
                 id: crypto.randomUUID(), // for tracking/editing/deleting later
                 type,
@@ -1079,7 +1190,9 @@ function initalizeInstructorPage() {
         
         // click event after clicking the Save review button
         document.getElementById('saveReviewBtn').addEventListener('click', () => {
+// Declare a constant or variable
             const title = document.getElementById('reviewTitle').value.trim();
+// Declare a constant or variable
             const course = document.getElementById('reviewCourseSelect').value;
         
             if (!title || !course) {
@@ -1092,12 +1205,14 @@ function initalizeInstructorPage() {
                 return;
             }
         
+// Declare a constant or variable
             const review = {
                 title,
                 courseCode: course,
                 questions: [...questions] // Make a shallow copy
             };
         
+// Send HTTP request using Fetch API
             fetch('http://localhost:8000/create-assessment', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1135,9 +1250,13 @@ function initalizeInstructorPage() {
         //logic for after pushing the create team button
         if (createTeamBtn) {
             createTeamBtn.addEventListener('click', async () => {
+// Declare a constant or variable
                 const selectedCourseCode = document.getElementById('teamCourseSelect').value;
+// Declare a constant or variable
                 const teamName = document.getElementById('teamName').value.trim();
+// Declare a constant or variable
                 const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
+// Declare a constant or variable
                 const selectedStudents = Array.from(studentCheckboxes)
                     .filter(cb => cb.checked)
                     .map(cb => cb.value);  // Student emails
@@ -1158,13 +1277,16 @@ function initalizeInstructorPage() {
         
                 try {
                     // Determine route and method
+// Declare a constant or variable
                     let url = 'http://localhost:8000/teams';
+// Declare a constant or variable
                     let method = 'POST';
                     if (editingGroupId) {
                         url = `http://localhost:8000/teams/${editingGroupId}`;
                         method = 'PUT';
                     }
         
+// Send HTTP request using Fetch API
                     const response = await fetch(url, {
                         method,
                         headers: { 'Content-Type': 'application/json' },
@@ -1175,6 +1297,7 @@ function initalizeInstructorPage() {
                         })
                     });
         
+// Declare a constant or variable
                     const result = await response.json();
         
                     if (!response.ok) {
@@ -1202,6 +1325,7 @@ function initalizeInstructorPage() {
         
         
         document.getElementById('teamCourseSelect').addEventListener('change', (e) => {
+// Declare a constant or variable
             const selectedCourseCode = e.target.value;
             if (selectedCourseCode) {
                 fetchAndDisplayTeamsForCourse(selectedCourseCode);
@@ -1210,7 +1334,9 @@ function initalizeInstructorPage() {
 
         // --- 🆕 New scheduleCourseSelect listener ---
         document.getElementById('scheduleCourseSelect').addEventListener('change', async function () {
+// Declare a constant or variable
             const selectedCourse = this.value;
+// Declare a constant or variable
             const reviewSelect = document.getElementById('scheduleReviewSelect');
     
             reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
@@ -1218,10 +1344,13 @@ function initalizeInstructorPage() {
             if (!selectedCourse) return;
 
             try {
+// Send HTTP request using Fetch API
                 const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
+// Declare a constant or variable
                 const data = await response.json();
 
                 if (!data || data.length === 0) {
+// Declare a constant or variable
                     const opt = document.createElement('option');
                     opt.disabled = true;
                     opt.textContent = 'No reviews found';
@@ -1230,6 +1359,7 @@ function initalizeInstructorPage() {
                 }
 
                 data.forEach(review => {
+// Declare a constant or variable
                     const option = document.createElement('option');
                     option.value = review.AssessmentID;
                     option.textContent = review.Name;
@@ -1254,15 +1384,20 @@ function initalizeInstructorPage() {
         }
     
         // Handle course creation form submission
+// Declare a constant or variable
         const createCourseBtn = document.getElementById('createCourseBtn');
 
 if (createCourseBtn) {
     createCourseBtn.addEventListener('click', async function (e) {
         e.preventDefault();  // Optional now but still good practice
         
+// Declare a constant or variable
         const courseName = document.getElementById('courseName').value.trim();
+// Declare a constant or variable
         const courseCode = document.getElementById('courseCode').value.trim();
+// Declare a constant or variable
         const courseSection = document.getElementById('courseSection').value.trim();
+// Declare a constant or variable
         const currentUser = getCurrentUser();
         console.log("DEBUG currentUser:", currentUser);
 
@@ -1271,9 +1406,11 @@ if (createCourseBtn) {
             return;
         }
 
+// Declare a constant or variable
         const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
 
         try {
+// Send HTTP request using Fetch API
             const response = await fetch('http://localhost:8000/createCourse', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1287,6 +1424,7 @@ if (createCourseBtn) {
                 })
             });
 
+// Declare a constant or variable
             const data = await response.json();
 
             if (!response.ok) {
@@ -1323,6 +1461,42 @@ if (createCourseBtn) {
         }
     });
 }
+
+
+document.getElementById('resultsCourseSelect').addEventListener('change', function () {
+// Declare a constant or variable
+    const selectedCourseCode = this.value;
+
+    if (!selectedCourseCode) return;
+
+    // Fetch all reviews for this course
+// Send HTTP request using Fetch API
+    fetch(`http://localhost:8000/reviews-by-course/${selectedCourseCode}`)
+        .then(response => response.json())
+        .then(data => {
+// Declare a constant or variable
+            const reviewDropdown = document.getElementById('resultsReviewSelect');
+            reviewDropdown.innerHTML = '<option disabled selected>Select a review</option>';
+
+            if (data.length === 0) {
+                reviewDropdown.innerHTML += '<option disabled>No reviews found</option>';
+                return;
+            }
+
+            data.forEach(review => {
+// Declare a constant or variable
+                const option = document.createElement('option');
+                option.value = review.AssessmentID;
+                option.textContent = review.Name;
+                reviewDropdown.appendChild(option);
+            });
+        })
+        .catch(err => {
+            console.error('Failed to fetch reviews for selected course:', err);
+            Swal.fire("Error", "Unable to load reviews for this course.", "error");
+        });
+});
+
 
         
         populateReportCourseDropdown()
