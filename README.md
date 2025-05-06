@@ -6,9 +6,9 @@ The project involved us creating an app for reviewing group members inside of a 
 This project helped us apply what we learned about building a frontend and backend to a web application.
 
 Members
-Austin Oliver
-Gavin Bright
-Madison Grainger
+Austin Oliver,
+Gavin Bright,
+Madison Grainger,
 Nathanael Newton
 
 Required Libraries
