@@ -1,3 +1,4 @@
+
 // instructor.js
 
 //global variables
@@ -6,6 +7,7 @@ let teams = []
 let questions = [] //global questions array
 let reviews = []  //globalreviews array
 let assignments = []
+let editingGroupId = null;
 
 //***************************************************FUNCTIONS****************************************************************************************/
 
@@ -17,6 +19,15 @@ function generateJoinCode(length = 6) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return code;
+}
+
+async function refreshAllCourseDropdowns() {
+    await fetchAndDisplayCourses();              // Update table
+    await populateTeamCourseDropdown();          // Teams tab
+    populateReportCourseDropdown();              // Reports tab
+    populateScheduleDropdowns();                 // Schedule tab
+    populateReviewCourseDropdown();              // Reviews tab
+    populateReviewResultsDropdowns();            // Results tab
 }
 
 //function for displaying each question added. it will show the options if the question has any. Also will have an edit and delete button for the questions
@@ -104,8 +115,8 @@ function populateReviewCourseDropdown() {
 
         courses.forEach(course => {
             const option = document.createElement('option');
-            option.value = course.code;
-            option.textContent = `${course.code} - ${course.name}`;
+            option.value = course.CourseNumber;
+            option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
             reviewCourseSelect.appendChild(option);
         });
     }
@@ -113,102 +124,155 @@ function populateReviewCourseDropdown() {
 
 
 //******************Function for displaying Saved Reviews**************///
-function displaySavedReviews() {
+async function displaySavedReviews() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     const list = document.getElementById('savedReviewsList');
     list.innerHTML = ''; // Clear old list
-    //show a placeholder message if no reviews exist
-    if (reviews.length === 0) {
+
+    if (!currentUser || !currentUser.UserID) {
         const item = document.createElement('li');
         item.className = 'list-group-item';
-        item.textContent = 'No reviews saved yet.';
+        item.textContent = 'Error: No user found.';
         list.appendChild(item);
         return;
     }
-    //loop through all saved reviews and display them
-    reviews.forEach(review => {
-        const item = document.createElement('li'); //create the list item container
-        item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-        const content = document.createElement('div'); //build the left-side content: title course and question count
-        content.innerHTML = `
-            <strong>${review.title}</strong><br>
-            Course: ${review.courseCode}<br>
-            Questions: ${review.questions.length}
-        `;
+    try {
+        const response = await fetch(`http://localhost:8000/instructor-assessments/${currentUser.UserID}`);
+        const data = await response.json();
 
-        const btnGroup = document.createElement('div'); //create button group: Edit, Delete, View
-        btnGroup.className = 'btn-group btn-group-sm';
+        const assessments = data.assessments;
 
-        // EDIT Button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-outline-primary';
-        editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => {
-            // Load review data back into form
-            document.getElementById('reviewTitle').value = review.title;
-            document.getElementById('reviewCourseSelect').value = review.courseCode;
+        if (!assessments || assessments.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.textContent = 'No reviews saved yet.';
+            list.appendChild(item);
+            return;
+        }
 
-            // Set questions[] to this review’s questions
-            questions = [...review.questions];
+        for (const assessment of assessments) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-start';
 
-            // Re-render all questions into the preview
-            document.getElementById('reviewQuestionList').innerHTML = '';
-            questions.forEach(q => renderQuestionPreview(q));
-
-            // Remove review from the list so it's not duplicated on save
-            reviews = reviews.filter(r => r.id !== review.id);
-            renderSavedReviews();
-        });
-
-        // DELETE Button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-outline-danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => { //click event for delete button
-            // Remove from array and re-render list
-            reviews = reviews.filter(r => r.id !== review.id);
-            displaySavedReviews();
-        });
-
-        //View button
-        const viewBtn = document.createElement('button');
-        viewBtn.className = 'btn btn-outline-secondary';
-        viewBtn.textContent = 'View';
-        viewBtn.addEventListener('click', () => {
-            const modelBody = document.getElementById('fullReviewModelBody');
-            //construct model content: title, course, and all questions
-            let html = `
-                <p><strong>Title:</strong> ${review.title}</p>
-                <p><strong>Course:</strong> ${review.courseCode}</p>
-                <hr>
+            const content = document.createElement('div');
+            content.innerHTML = `
+                <strong>${assessment.Name}</strong><br>
+                Course: ${assessment.CourseNumber} (${assessment.CourseName})
             `;
-            //loop through each question in the review and display it
-            review.questions.forEach((q, index) => {
-                html += `<p><strong>Q${index + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`; //add question number, question text, and question type 
-                if (q.options && q.options.length > 0) { //if question has answer options, display them as list
-                    html += `<ul>` //starts list
-                    q.options.forEach(opt => {
-                        html += `<li>${opt}</li>` //displays each option
+
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group btn-group-sm';
+
+            // ---------------- View Button ------------------
+            const viewBtn = document.createElement('button');
+            viewBtn.className = 'btn btn-outline-secondary';
+            viewBtn.textContent = 'View';
+            viewBtn.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
+                    const data = await res.json();
+
+                    const modelBody = document.getElementById('fullReviewModelBody');
+                    let html = `
+                        <p><strong>Title:</strong> ${data.title}</p>
+                        <p><strong>Course:</strong> ${assessment.CourseNumber}</p>
+                        <hr>
+                    `;
+                    data.questions.forEach((q, i) => {
+                        html += `<p><strong>Q${i + 1}:</strong> ${q.text} <em>(${q.type})</em></p>`;
+                        if (q.options?.length > 0) {
+                            html += '<ul>';
+                            q.options.forEach(opt => html += `<li>${opt}</li>`);
+                            html += '</ul>';
+                        }
                     });
-                    html += `</ul>` //end of list
+
+                    modelBody.innerHTML = html;
+                    const modal = new bootstrap.Modal(document.getElementById('fullReviewModel'));
+                    modal.show();
+                } catch (err) {
+                    console.error('Error loading review details:', err);
+                    Swal.fire("Error", "Could not load full review details.", "error");
                 }
             });
 
-            modelBody.innerHTML = html;
-            //show the model
-            const model = new bootstrap.Model(document.getElementById('fullReviewModel'));
-            model.show();
-        });
-        //adds the three buttons to the btnGroup container
-        btnGroup.appendChild(viewBtn)
-        btnGroup.appendChild(editBtn)
-        btnGroup.appendChild(deleteBtn)
+            // ---------------- Edit Button ------------------
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-outline-primary';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/assessment-details/${assessment.AssessmentID}`);
+                    const data = await res.json();
 
-        item.appendChild(content) //item is the <li> representing one saved review. content contains the review title, course and question count
-        item.appendChild(btnGroup) //btnGroup holds the 3 buttons
-        list.appendChild(item) // appends the entire list to the outer <ul> (#savedReviewsList) which contains all the reviews
-    }) 
+                    // Load review data into form
+                    document.getElementById('reviewTitle').value = data.title;
+                    document.getElementById('reviewCourseSelect').value = assessment.CourseNumber;
+
+                    questions = data.questions; // replace global questions array
+                    document.getElementById('reviewQuestionList').innerHTML = '';
+                    questions.forEach(renderQuestionPreview);
+
+                    // Delete assessment from DB so it doesn’t duplicate on re-save
+                    await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
+                        method: 'DELETE'
+                    });
+
+                    await displaySavedReviews(); // Refresh list
+
+                } catch (err) {
+                    console.error('Error editing review:', err);
+                    Swal.fire("Error", "Could not load or delete the review for editing.", "error");
+                }
+            });
+
+            // ---------------- Delete Button ------------------
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                const confirmed = await Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'This will permanently delete the review.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, delete it!'
+                });
+
+                if (confirmed.isConfirmed) {
+                    try {
+                        await fetch(`http://localhost:8000/delete-assessment/${assessment.AssessmentID}`, {
+                            method: 'DELETE'
+                        });
+                        Swal.fire("Deleted!", "The review has been deleted.", "success");
+                        await displaySavedReviews();
+                    } catch (err) {
+                        console.error('Error deleting review:', err);
+                        Swal.fire("Error", "Failed to delete the review.", "error");
+                    }
+                }
+            });
+
+            btnGroup.appendChild(viewBtn);
+            btnGroup.appendChild(editBtn);
+            btnGroup.appendChild(deleteBtn);
+
+            item.appendChild(content);
+            item.appendChild(btnGroup);
+            list.appendChild(item);
+        }
+
+    } catch (err) {
+        console.error("Error fetching assessments:", err);
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Failed to load reviews.';
+        list.appendChild(item);
+    }
 }
+
+
 
 
 //*************Function for filling in the dropdowns on the schedule tab***************** */
@@ -221,8 +285,8 @@ function populateScheduleDropdowns() {
         courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
         courses.forEach(course => {
             const opt = document.createElement('option');
-            opt.value = course.code;
-            opt.textContent = `${course.code} - ${course.name}`;
+            opt.value = course.CourseNumber;
+            opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
             courseSelect.appendChild(opt);
         });
     }
@@ -240,72 +304,94 @@ function populateScheduleDropdowns() {
 }
 
 //Function for displaying the assigned reviews created by an instructor
-function displayAssignedReviews() {
-    const list = document.getElementById('assignedReviewsList') //get ul element where the assigned reviews will be displayed
-    list.innerHTML = '' // Clear previous list
+async function displayAssignedReviews() {
+    const currentUser = getCurrentUser();
+    const list = document.getElementById('assignedReviewsList');
+    list.innerHTML = '';
 
-    if (assignments.length === 0) { //if there are no assignments, display a message
-        const item = document.createElement('li')
-        item.className = 'list-group-item'
-        item.textContent = 'No reviews have been assigned yet.'
-        list.appendChild(item)
+    if (!currentUser || !currentUser.UserID) {
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Error: No instructor found.';
+        list.appendChild(item);
         return;
     }
 
-    assignments.forEach(assign => { //loops through each assignment in the assignments array
-        const course = courses.find(c => c.code === assign.courseCode) //finds the correct course using courseCode
-        const review = reviews.find(r => r.id === assign.reviewId) //finds the correct review using reviewID
+    try {
+        const response = await fetch(`http://localhost:8000/scheduled-reviews/${currentUser.UserID}`);
+        const data = await response.json();
+        const assignments = data.scheduledReviews;
 
-        const item = document.createElement('li'); //create a new <li> for the current assignment
-        item.className = 'list-group-item d-flex justify-content-between align-items-start'
-        //set the inner html to show: the review title, the course code and name, and the due date
-        const content = document.createElement('div')
-        content.innerHTML = `
-            <strong>${review?.title || 'Unknown Review'}</strong><br>
-            Course: ${course?.code || 'Unknown'} - ${course?.name || ''}<br>
-            Due: ${assign.dueDate || 'No due date'}
-        `
+        if (assignments.length === 0) {
+            const item = document.createElement('li');
+            item.className = 'list-group-item';
+            item.textContent = 'No reviews have been assigned yet.';
+            list.appendChild(item);
+            return;
+        }
 
-        //button group
-        const btnGroup = document.createElement('div')
-        btnGroup.className = 'btn-group btn-group-sm'
-
-        //edit button
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn btn-outline-primary';
-        editBtn.textContent = 'Edit';
-        editBtn.addEventListener('click', () => {
-            // Refill form with assignment data
-            document.getElementById('scheduleCourseSelect').value = assign.courseCode
-            document.getElementById('scheduleReviewSelect').value = assign.reviewId
-            document.getElementById('reviewDueDate').value = assign.dueDate
-
-            // Remove original assignment from array
-            assignments = assignments.filter(a => a.id !== assign.id);
-            displayAssignedReviews(); // Re-render the list
-        })
-
-        //delete button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn btn-outline-danger';
-        deleteBtn.textContent = 'Delete';
-        deleteBtn.addEventListener('click', () => {
-            // Remove assignment from array
-            assignments = assignments.filter(a => a.id !== assign.id);
-            displayAssignedReviews(); // Re-render the list
+        assignments.forEach(assign => {
+            const item = document.createElement('li');
+            item.className = 'list-group-item d-flex justify-content-between align-items-start';
+        
+            const content = document.createElement('div');
+            content.innerHTML = `
+                <strong>${assign.ReviewTitle}</strong><br>
+                Course: ${assign.CourseNumber} - ${assign.CourseName}<br>
+                Due: ${assign.DueDate}
+            `;
+        
+            const btnGroup = document.createElement('div');
+            btnGroup.className = 'btn-group btn-group-sm';
+        
+            // ====== DELETE BUTTON ======
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-outline-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', async () => {
+                const confirm = await Swal.fire({
+                    title: "Are you sure?",
+                    text: "This will permanently delete the assignment.",
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonText: "Yes, delete it!"
+                });
+        
+                if (!confirm.isConfirmed) return;
+        
+                try {
+                    const response = await fetch(`http://localhost:8000/delete-scheduled-review/${assign.ScheduleID}`, {
+                        method: 'DELETE'
+                    });
+        
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error);
+        
+                    Swal.fire("Deleted!", "Scheduled review has been removed.", "success");
+                    displayAssignedReviews(); // Refresh the list
+                } catch (err) {
+                    console.error("Failed to delete scheduled review:", err);
+                    Swal.fire("Error", err.message, "error");
+                }
+            });
+        
+            // ====== APPEND BUTTON AND RENDER ======
+            btnGroup.appendChild(deleteBtn);
+            item.appendChild(content);
+            item.appendChild(btnGroup);
+            list.appendChild(item);
         });
+        
 
-        // Add buttons to button group
-        btnGroup.appendChild(editBtn);
-        btnGroup.appendChild(deleteBtn);
-
-        // Add everything to the list item
-        item.appendChild(content);
-        item.appendChild(btnGroup);
-
-        list.appendChild(item); //add the <li> item to the list
-    });
+    } catch (err) {
+        console.error("Error loading assigned reviews:", err);
+        const item = document.createElement('li');
+        item.className = 'list-group-item';
+        item.textContent = 'Failed to load assigned reviews.';
+        list.appendChild(item);
+    }
 }
+
 
 
 function populateReviewResultsDropdowns() {
@@ -318,8 +404,8 @@ function populateReviewResultsDropdowns() {
     courseSelect.innerHTML = '<option disabled selected>Select a course</option>';
     courses.forEach(course => {
         const option = document.createElement('option');
-        option.value = course.code;
-        option.textContent = `${course.code} - ${course.name}`;
+        option.value = course.CourseNumber;
+        option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
         courseSelect.appendChild(option);
         });
 
@@ -386,13 +472,292 @@ function populateReportCourseDropdown() {
 
     select.innerHTML = '<option disabled selected>Select a course</option>';
 
-    courses.forEach(c => {
+    courses.forEach(course => {
         const opt = document.createElement('option');
-        opt.value = c.code;
-        opt.textContent = `${c.code} - ${c.name}`;
+        opt.value = course.CourseNumber;
+        opt.textContent = `${course.CourseNumber} - ${course.CourseName}`;
         select.appendChild(opt);
     });
 }
+
+
+function getCurrentUser() {
+    const userStr = localStorage.getItem('currentUser');
+    return userStr ? JSON.parse(userStr) : null;
+}
+
+
+async function fetchAndDisplayCourses() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        Swal.fire("Error", "User not logged in.", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/courses/${currentUser.UserID}`, {
+            method: 'GET',
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch courses');
+        }
+
+        const data = await response.json();
+        const coursesFromDB = data.courses;
+        courses = coursesFromDB;
+
+        // Filter courses by instructor's email
+        const instructorCourses = coursesFromDB;
+
+        const courseTableBody = document.getElementById('courseTableBody');
+        courseTableBody.innerHTML = '';
+
+        instructorCourses.forEach(course => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${course.CourseName}</td>
+                <td>${course.CourseNumber}</td>
+                <td>${course.CourseSection}</td>
+                <td>${course.JoinCode}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-info" type="button">View Students</button>
+                    <button class="btn btn-sm btn-outline-danger" type="button">Delete</button>
+                </td>
+            `;
+
+            // Set up the View Students button
+            const viewButton = newRow.querySelector('.btn-outline-info');
+            viewButton.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}/students`);
+                    const result = await res.json();
+
+                    if (!res.ok) {
+                        Swal.fire("Error", result.error || "Failed to fetch students.", "error");
+                        return;
+                    }
+
+                    const studentList = result.students.map(s => `${s.FirstName} ${s.LastName} (${s.Email})`).join('<br>');
+
+                    Swal.fire({
+                        title: `Students in ${course.CourseNumber}`,
+                        html: studentList || 'No students enrolled yet.',
+                        icon: 'info',
+                        width: '50%'
+                    });
+                } catch (err) {
+                    console.error("Error fetching students:", err);
+                    Swal.fire("Error", "Could not fetch students.", "error");
+                }
+            });
+
+            // Set up the Delete button
+            const deleteButton = newRow.querySelector('.btn-outline-danger');
+            deleteButton.addEventListener('click', async () => {
+                try {
+                    const res = await fetch(`http://localhost:8000/courses/${encodeURIComponent(course.CourseNumber)}`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    if (!res.ok) {
+                        const result = await res.json();
+                        Swal.fire("Error", result.error || "Failed to delete course.", "error");
+                        return;
+                    }
+
+                    Swal.fire("Deleted!", "Course has been deleted.", "success");
+                    // Refresh the course list
+                    await refreshAllCourseDropdowns();
+
+                } catch (err) {
+                    console.error("Error deleting course:", err);
+                    Swal.fire("Error", "Could not delete course.", "error");
+                }
+            });
+
+            courseTableBody.appendChild(newRow);
+        });
+    } catch (error) {
+        console.error("Error fetching courses:", error);
+        Swal.fire("Error", "Could not fetch courses.", "error");
+    }
+}
+
+
+//populating select course drop down on teams page
+async function populateTeamCourseDropdown() {
+    const courseSelect = document.getElementById('teamCourseSelect');
+    if (!courseSelect) return;
+
+    // ⛳️ Get instructor ID from localStorage or session
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const UserId = currentUser?.UserID;
+
+    if (!UserId) {
+        console.error("Instructor not logged in or UserID missing.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`http://localhost:8000/courses/${UserId}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Failed to fetch instructor courses:", data.error);
+            return;
+        }
+
+        // Clear existing options
+        courseSelect.innerHTML = '<option selected disabled>Select a course</option>';
+
+        data.courses.forEach(course => {
+            const option = document.createElement('option');
+            option.value = course.CourseNumber;
+            option.textContent = `${course.CourseNumber} - ${course.CourseName}`;
+            courseSelect.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Error loading instructor courses:", err);
+    }
+}
+
+//display students based on the selected course
+function setupCourseStudentListener() {
+    const courseSelect = document.getElementById('teamCourseSelect');
+    const studentContainer = document.getElementById('teams');
+
+    if (!courseSelect || !studentContainer) return;
+
+    courseSelect.addEventListener('change', async () => {
+        const courseCode = courseSelect.value;
+        if (!courseCode) return;
+
+        try {
+            const response = await fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/students`);
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error("Failed to fetch students:", data.error);
+                return;
+            }
+
+            // Clear existing checkboxes
+            const formCheckElements = studentContainer.querySelectorAll('.form-check');
+            formCheckElements.forEach(el => el.remove());
+
+            // Dynamically create new checkboxes
+            data.students.forEach((student, index) => {
+                const formCheck = document.createElement('div');
+                formCheck.className = 'form-check';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.className = 'form-check-input';
+                input.id = `student-${index}`;
+                input.value = student.Email;
+
+                const label = document.createElement('label');
+                label.className = 'form-check-label';
+                label.htmlFor = input.id;
+                label.textContent = `${student.FirstName} ${student.LastName}`;
+
+                formCheck.appendChild(input);
+                formCheck.appendChild(label);
+
+                studentContainer.querySelector('.mb-3:nth-child(2)').appendChild(formCheck);
+            });
+
+        } catch (error) {
+            console.error("Error fetching students:", error);
+        }
+    });
+}
+
+
+//Displays teams the instructor has created for specific course. This is for the instructor side
+function fetchAndDisplayTeamsForCourse(courseCode) {
+    fetch(`http://localhost:8000/courses/${encodeURIComponent(courseCode)}/teams`)
+        .then(res => res.json())
+        .then(data => {
+            const teamList = document.getElementById('teamList');
+            teamList.innerHTML = '';
+
+            data.teams.forEach(team => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${team.teamName}</strong><br>
+                            Course: ${courseCode}<br>
+                            Members: ${team.members.join(', ')}
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
+                            <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
+                        </div>
+                    </div>
+                `;
+                teamList.appendChild(listItem);
+
+                // 🔧 Wire up Edit button
+                const editBtn = listItem.querySelector('.btn-edit-team');
+                editBtn.addEventListener('click', () => {
+                    editingGroupId = team.groupId;  // 👈 make sure this comes from backend
+                    document.getElementById('teamName').value = team.teamName;
+                    document.getElementById('teamCourseSelect').value = courseCode;
+
+                    const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
+                    studentCheckboxes.forEach(cb => {
+                        cb.checked = team.members.includes(cb.value);
+                    });
+                });
+
+                // 🔧 Wire up Delete button (optional for now)
+                const deleteBtn = listItem.querySelector('.btn-delete-team');
+                deleteBtn.addEventListener('click', async () => {
+                    const confirmed = await Swal.fire({
+                        title: "Are you sure?",
+                        text: "This will permanently delete the team.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "Yes, delete it!"
+                    });
+
+                    if (!confirmed.isConfirmed) return;
+
+                    try {
+                        const response = await fetch(`http://localhost:8000/teams/${team.groupId}`, {
+                            method: 'DELETE'
+                        });
+
+                        const result = await response.json();
+
+                        if (!response.ok) {
+                            Swal.fire("Error", result.error || "Failed to delete team.", "error");
+                            return;
+                        }
+
+                        Swal.fire("Deleted!", "Team has been deleted.", "success");
+                        fetchAndDisplayTeamsForCourse(courseCode); // 🔁 Refresh the list
+
+                    } catch (err) {
+                        console.error("Error deleting team:", err);
+                        Swal.fire("Error", "Something went wrong.", "error");
+                    }
+                });
+
+            });
+        })
+        .catch(err => {
+            console.error("Error loading teams:", err);
+        });
+}
+
+
 //---------------------------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -422,7 +787,51 @@ function initalizeInstructorPage() {
         const teamList = document.getElementById('teamList');
     
         let currentJoinCode = ''; // Store latest generated join code (optional)
+
+        refreshAllCourseDropdowns().then(() => {
+            setupCourseStudentListener();
+        });
     
+
+        // When course is selected in the "Review Results" tab, fetch reviews for that course
+        document.getElementById('resultsCourseSelect').addEventListener('change', async function () {
+            const selectedCourse = this.value;
+            const reviewSelect = document.getElementById('resultsReviewSelect');
+            reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+            document.getElementById('reviewResultsList').innerHTML = ''; // Clear existing results
+
+            if (!selectedCourse) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
+                const data = await response.json();
+
+                if (!response.ok || !data || data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = 'No reviews found';
+                    reviewSelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(review => {
+                    const option = document.createElement('option');
+                    option.value = review.AssessmentID;
+                    option.textContent = review.Name;
+                    reviewSelect.appendChild(option);
+                });
+
+            } catch (err) {
+                console.error("Error loading review results:", err);
+            }
+        });
+
+        document.getElementById('resultsReviewSelect').addEventListener('change', () => {
+            document.getElementById('viewReviewResultsBtn').click(); // Simulate click to load results
+        });
+        
+
+
         
         //click event for the logout button on the instructor page
         const logoutBtn = document.getElementById('btnLogout');
@@ -434,94 +843,124 @@ function initalizeInstructorPage() {
                 document.body.className = 'bg-dark d-flex align-items-center justify-content-center min-vh-100';
                 const selectDiv = document.getElementById('divSelect');
                 if (selectDiv) selectDiv.style.display = 'block';
-
+            
         // Optionally clear any stored user info
         // localStorage.removeItem('currentUser');
     });
 }
+
         
         
         
         //--------------------------------------------------------------------------------------------------
         //*******************************************Reports Tab**************************************** */
         //click event for generate reports button. Using a simulation with the 
-        document.getElementById('generateReportBtn').addEventListener('click', () => {
-            const selectedCourse = document.getElementById('reportCourseSelect').value;
-            if (!selectedCourse) {
-                alert("Please select a course to generate the report.");
-                return;
-            }
-            renderReportsForCourse(selectedCourse);
-        });
+        // document.getElementById('generateReportBtn').addEventListener('click', () => {
+        //     const selectedCourse = document.getElementById('reportCourseSelect').value;
+        //     if (!selectedCourse) {
+        //         alert("Please select a course to generate the report.");
+        //         return;
+        //     }
+        //     renderReportsForCourse(selectedCourse);
+        // });
     
         
         //---------------------------------------------------------------------------------------------------------------
         //*************************************Review Results********************************************************* */
-        document.getElementById('viewReviewResultsBtn').addEventListener('click', () => {
-            const selectedCourse = document.getElementById('resultsCourseSelect').value;
-            const selectedReview = document.getElementById('resultsReviewSelect').value;
+        document.getElementById('viewReviewResultsBtn').addEventListener('click', async () => {
+            const reviewSelect = document.getElementById('resultsReviewSelect');
+            const selectedReviewId = reviewSelect.value;
         
-            // Simple validation
-            if (!selectedCourse || !selectedReview) {
-                alert("Please select both a course and a review.");
-                return;
-            }
-        
-            // Simulate what will eventually be a backend call
-            console.log("Ready to fetch results for:");
-            console.log("Course Code:", selectedCourse);
-            console.log("Review ID:", selectedReview);
-        
-            // Future backend fetch will go here
-        
-            // Show a placeholder for now
             const list = document.getElementById('reviewResultsList');
-            list.innerHTML = `
-                <li class="list-group-item text-muted">
-                    Placeholder: Review results will be loaded here from the backend.
-                </li>
-            `;
+            list.innerHTML = ''; // Clear any existing results
+        
+            if (!selectedReviewId) return;
+        
+            try {
+                const res = await fetch(`http://localhost:8000/review-results/${selectedReviewId}`);
+                const data = await res.json();
+        
+                if (!res.ok) throw new Error(data.error || 'Failed to load review results');
+        
+                data.results.forEach(entry => {
+                    const item = document.createElement('li');
+                    item.className = 'list-group-item';
+                    item.innerHTML = `
+                        <strong>Reviewer:</strong> ${entry.ReviewerName} <br>
+                        <strong>Target:</strong> ${entry.TargetName} <br>
+                        <strong>Question:</strong> ${entry.QuestionNarrative} <br>
+                        <strong>Response:</strong> ${entry.Response} <br>
+                        <strong>Visibility:</strong> ${entry.Public ? 'Public' : 'Private'}
+                    `;
+                    list.appendChild(item);
+                });
+        
+            } catch (err) {
+                console.error('Error loading results:', err);
+                alert('Failed to fetch review results.');
+            }
         });
+        
+        
         
         //***************************************End of Review Results*********************************************** */
         //--------------------------------------------------------------------------------------------------------------
         
         //***************************************Schedule Reviews Tab*************************************************** */
         //event listener for assign review button
-        document.getElementById('assignReviewBtn').addEventListener('click', () => {
-            const courseCode = document.getElementById('scheduleCourseSelect').value //get selected course code from the drop down
-            const reviewId = document.getElementById('scheduleReviewSelect').value //gets selected review from dropdown
-            const dueDate = document.getElementById('reviewDueDate').value //gets due date from the date input
+        document.getElementById('assignReviewBtn').addEventListener('click', async () => {
+            const courseCode = document.getElementById('scheduleCourseSelect').value;
+            const assessmentID = document.getElementById('scheduleReviewSelect').value;
+            const dueDate = document.getElementById('reviewDueDate').value;
         
-            // Validation
-            if (!courseCode || !reviewId) { //makes sure course and review are selected
-                alert("Please select both a course and a review.");
+            // Validate form
+            if (!courseCode || !assessmentID || !dueDate) {
+                Swal.fire("Missing Info", "Please select course, review, and due date.", "warning");
                 return;
             }
         
-            // Store the assignment in the assignments array
-            assignments.push({
-                id: crypto.randomUUID(),  //unique ID for future use
-                courseCode,
-                reviewId,
+            // Get CourseID from selected course code (assumes courses[] is already loaded)
+            const course = courses.find(c => c.CourseNumber === courseCode);
+
+            if (!course) {
+                Swal.fire("Error", "Course not found.", "error");
+                return;
+            }
+        
+            const payload = {
+                assessmentID,
+                courseID: course.CourseID,
                 dueDate
-            })
-    
-            displayAssignedReviews() // calls displayAssignedReviews so the instructor can see what they have made already
+            };
         
-            // Reset form fields
-            document.getElementById('scheduleCourseSelect').selectedIndex = 0
-            document.getElementById('scheduleReviewSelect').selectedIndex = 0
-            document.getElementById('reviewDueDate').value = ''
+            try {
+                const response = await fetch('http://localhost:8000/assign-review', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
         
-            // Show a temporary success message
-            const alertBox = document.getElementById('assignmentSuccessAlert')
-            alertBox.classList.remove('d-none')
-            setTimeout(() => {
-                alertBox.classList.add('d-none') //hides message after 3 seconds
-            }, 3000);
-            
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error);
+        
+                Swal.fire("Success", "Review assigned!", "success");
+        
+                // Reset form
+                document.getElementById('scheduleCourseSelect').selectedIndex = 0;
+                document.getElementById('scheduleReviewSelect').selectedIndex = 0;
+                document.getElementById('reviewDueDate').value = '';
+        
+                // Refresh assigned list
+                displayAssignedReviews(); // If you build this later
+        
+            } catch (err) {
+                console.error("Error assigning review:", err);
+                Swal.fire("Error", err.message, "error");
+            }
         });
+        
+
+        
         
     
         
@@ -644,35 +1083,49 @@ function initalizeInstructorPage() {
             const course = document.getElementById('reviewCourseSelect').value;
         
             if (!title || !course) {
-                alert("Please enter a review title and select a course.");
+                Swal.fire("Missing Info", "Please enter a review title and select a course.", "warning");
                 return;
             }
         
             if (questions.length === 0) {
-                alert("Please add at least one question to the review.");
+                Swal.fire("No Questions", "Please add at least one question to the review.", "warning");
                 return;
             }
         
             const review = {
-                id: crypto.randomUUID(),
                 title,
                 courseCode: course,
-                questions: [...questions] // copy the questions array
+                questions: [...questions] // Make a shallow copy
             };
         
-            reviews.push(review);
-            populateScheduleDropdowns()
-            populateReviewResultsDropdowns() //call populareReviewResultsDropdowns to fill in select boxes on review results tab
+            fetch('http://localhost:8000/create-assessment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(review)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.error) throw new Error(result.error);
         
-            // Reset the form and question list
-            document.getElementById('reviewTitle').value = ''
-            document.getElementById('reviewCourseSelect').selectedIndex = 0
-            document.getElementById('reviewQuestionList').innerHTML = ''
-            questions = [];
+                Swal.fire("Success", "Review saved successfully!", "success");
         
-            alert("Review saved successfully!")
-            displaySavedReviews()
+                // Refresh dropdowns
+                populateScheduleDropdowns();
+                populateReviewResultsDropdowns();
+                displaySavedReviews();
+        
+                // Clear form and local questions array
+                document.getElementById('reviewTitle').value = '';
+                document.getElementById('reviewCourseSelect').selectedIndex = 0;
+                document.getElementById('reviewQuestionList').innerHTML = '';
+                questions = [];
+            })
+            .catch(err => {
+                console.error("Failed to save review:", err);
+                Swal.fire("Error", err.message, "error");
+            });
         });
+        
         //***********************************End of Reviews Tab********************************************************************************/
         //---------------------------------------------------------------------------------------------------------------------------
         
@@ -681,94 +1134,112 @@ function initalizeInstructorPage() {
     
         //logic for after pushing the create team button
         if (createTeamBtn) {
-            createTeamBtn.addEventListener('click', () => {
-                const selectedCourseCode = document.getElementById('teamCourseSelect').value
-                const teamName = document.getElementById('teamName').value.trim()
-    
-                //get all selected students
-                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input')
+            createTeamBtn.addEventListener('click', async () => {
+                const selectedCourseCode = document.getElementById('teamCourseSelect').value;
+                const teamName = document.getElementById('teamName').value.trim();
+                const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
                 const selectedStudents = Array.from(studentCheckboxes)
                     .filter(cb => cb.checked)
-                    .map(cb => cb.value)
-    
-                //validation
+                    .map(cb => cb.value);  // Student emails
+        
+                // Validation
                 if (!selectedCourseCode) {
-                    alert('Please select a course')
-                    return
+                    Swal.fire("Error", "Please select a course.", "warning");
+                    return;
                 }
                 if (!teamName) {
-                    alert('Please enter a team name')
-                    return
+                    Swal.fire("Error", "Please enter a team name.", "warning");
+                    return;
                 }
-                if (selectedStudents.length ===0) {
-                    alert('Please select at least one student')
-                    return
+                if (selectedStudents.length === 0) {
+                    Swal.fire("Error", "Please select at least one student.", "warning");
+                    return;
                 }
-                teams.push({
-                    courseCode: selectedCourseCode, teamName,
-                    members: selectedStudents
-                })
-    
-                //display in the list
-                const listItem = document.createElement('li')
-                listItem.className = 'list-group-item'
-                listItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>${teamName}</strong><br>
-                    Course: ${selectedCourseCode}<br>
-                    Members: ${selectedStudents.join(', ')}
-                  </div>
-                  <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-primary btn-edit-team">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger btn-delete-team">Delete</button>
-                  </div>
-                </div>
-              `
-                teamList.appendChild(listItem)
-    
-    
-                //button for editing current team
-                const editBtn = listItem.querySelector('.btn-edit-team');
-                editBtn.addEventListener('click', () => {
-                // Fill the Create Team form with this team's data
-                    document.getElementById('teamName').value = teamName;
-                    document.getElementById('teamCourseSelect').value = selectedCourseCode;
-    
-                    const studentCheckboxes = document.querySelectorAll('#teams .form-check-input');
-                    studentCheckboxes.forEach(cb => {
-                        cb.checked = selectedStudents.includes(cb.value);
+        
+                try {
+                    // Determine route and method
+                    let url = 'http://localhost:8000/teams';
+                    let method = 'POST';
+                    if (editingGroupId) {
+                        url = `http://localhost:8000/teams/${editingGroupId}`;
+                        method = 'PUT';
+                    }
+        
+                    const response = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            courseCode: selectedCourseCode,
+                            teamName,
+                            studentEmails: selectedStudents
+                        })
                     });
-    
-                    // Optionally: remove the original team so they don't get duplicated on save
-                    listItem.remove();
-    
-                    const index = teams.findIndex(team =>
-                        team.teamName === teamName &&
-                        team.courseCode === selectedCourseCode
-                    );
-                    if (index !== -1) {
-                        teams.splice(index, 1);
+        
+                    const result = await response.json();
+        
+                    if (!response.ok) {
+                        Swal.fire("Error", result.error || "Failed to save team.", "error");
+                        return;
                     }
+        
+                    Swal.fire("Success", editingGroupId ? "Team updated." : "Team created.", "success");
+        
+                    // Clear form and reset editing state
+                    editingGroupId = null;
+                    document.getElementById('teamName').value = '';
+                    studentCheckboxes.forEach(cb => cb.checked = false);
+        
+                    // Refresh team list for the selected course
+                    fetchAndDisplayTeamsForCourse(selectedCourseCode);
+        
+                } catch (err) {
+                    console.error("Error creating/updating team:", err);
+                    Swal.fire("Error", "Something went wrong.", "error");
+                }
+            });
+        }
+        
+        
+        
+        document.getElementById('teamCourseSelect').addEventListener('change', (e) => {
+            const selectedCourseCode = e.target.value;
+            if (selectedCourseCode) {
+                fetchAndDisplayTeamsForCourse(selectedCourseCode);
+            }
+        });
+
+        // --- 🆕 New scheduleCourseSelect listener ---
+        document.getElementById('scheduleCourseSelect').addEventListener('change', async function () {
+            const selectedCourse = this.value;
+            const reviewSelect = document.getElementById('scheduleReviewSelect');
+    
+            reviewSelect.innerHTML = '<option disabled selected>Select a review</option>';
+
+            if (!selectedCourse) return;
+
+            try {
+                const response = await fetch(`http://localhost:8000/reviews-by-course/${selectedCourse}`);
+                const data = await response.json();
+
+                if (!data || data.length === 0) {
+                    const opt = document.createElement('option');
+                    opt.disabled = true;
+                    opt.textContent = 'No reviews found';
+                    reviewSelect.appendChild(opt);
+                    return;
+                }
+
+                data.forEach(review => {
+                    const option = document.createElement('option');
+                    option.value = review.AssessmentID;
+                    option.textContent = review.Name;
+                    reviewSelect.appendChild(option);
                 });
-    
-                //button for deleting team
-                const deleteBtn = listItem.querySelector('.btn-delete-team')
-                deleteBtn.addEventListener('click', () => {
-                    listItem.remove()
-                    const index = teams.findIndex(team =>
-                        team.teamName === teamName &&
-                        team.courseCode === selectedCourseCode
-                    )
-                    if (index !== -1) {
-                        teams.splice(index, 1)
-                    }
-    
-                //reset form
-                document.getElementById('teamName').value = ''
-                studentCheckboxes.forEach(cb => cb.checked = false)
-            })
-        })
+
+            } catch (err) {
+                console.error("Error loading reviews:", err);
+        }
+        });
         //********************************************End of Teams tab************************************************************************** */
         //-----------------------------------------------------------------------------------------------------------------------------------------
     
@@ -783,103 +1254,97 @@ function initalizeInstructorPage() {
         }
     
         // Handle course creation form submission
-        if (createCourseForm) {
-            createCourseForm.addEventListener('submit', function (e) {
-                e.preventDefault(); // Prevent form from reloading the page
-    
-                const courseName = document.getElementById('courseName').value.trim();
-                const courseCode = document.getElementById('courseCode').value.trim();
-    
-                if (!courseName || !courseCode) {
-                    alert("Please enter both course name and course code.");
-                    return;
-                }
-    
-                //Step 1: Save the join code locally before it's reset
-                const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
-    
-                // Store course in global array
-                courses.push({
-                    name: courseName,
-                    code: courseCode,
+        const createCourseBtn = document.getElementById('createCourseBtn');
+
+if (createCourseBtn) {
+    createCourseBtn.addEventListener('click', async function (e) {
+        e.preventDefault();  // Optional now but still good practice
+        
+        const courseName = document.getElementById('courseName').value.trim();
+        const courseCode = document.getElementById('courseCode').value.trim();
+        const courseSection = document.getElementById('courseSection').value.trim();
+        const currentUser = getCurrentUser();
+        console.log("DEBUG currentUser:", currentUser);
+
+        if (!courseName || !courseCode || !courseSection) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        const joinCodeForThisCourse = currentJoinCode || generateJoinCode();
+
+        try {
+            const response = await fetch('http://localhost:8000/createCourse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    courseName,
+                    courseCode,
+                    courseSection,
                     joinCode: joinCodeForThisCourse,
-                    students: [] // we'll use this later
+                    userID: currentUser.UserID // Assuming you have the user ID from the logged-in user
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                Swal.fire({
+                    title: 'Error',
+                    text: data.error || 'Failed to create course.',
+                    icon: 'error'
                 });
-                
-                //update review results tab drop down
-                populateReviewResultsDropdowns()
-                populateReportCourseDropdown() //populates the select course options in the reports tab
-                // Add course to Teams tab dropdown
-                const teamCourseSelect = document.getElementById('teamCourseSelect');
-                if (teamCourseSelect) {
-                    const option = document.createElement('option');
-                    option.value = courseCode;
-                    option.textContent = `${courseCode} - ${courseName}`;
-                    teamCourseSelect.appendChild(option);
-                }
-    
-                populateScheduleDropdowns() //refreshes the Schedule tab dropdowns
-                // add course to review tab dropdown
-                populateReviewCourseDropdown()
-                createCourseForm.reset();
+                return;
+            }
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Course created successfully.',
+                icon: 'success'
+            }).then(async() => {
+                // Clear fields manually now (no form.reset())
+                document.getElementById('courseName').value = '';
+                document.getElementById('courseCode').value = '';
+                document.getElementById('courseSection').value = '';
                 joinCodeDisplay.classList.add('d-none');
                 currentJoinCode = '';
-    
-                
-                
-                // Add course row to table
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>${courseName}</td>
-                    <td>${courseCode}</td>
-                    <td>${joinCodeForThisCourse}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-info">View Students</button>
-                        <button class="btn btn-sm btn-outline-danger">Delete</button>
-                    </td>
-                `;
-                courseTableBody.appendChild(newRow);
-    
-                // Add delete button functionality to this row
-                const deleteButton = newRow.querySelector('.btn-outline-danger');
-                deleteButton.addEventListener('click', () => {
-                    // Remove row from the table
-                    newRow.remove();
-    
-                    // Remove from the courses array
-                    const indexToRemove = courses.findIndex(c => c.code === courseCode);
-                    if (indexToRemove !== -1) {
-                        courses.splice(indexToRemove, 1);
-                    }
-    
-                    // Remove from the Teams tab dropdown
-                    const teamCourseSelect = document.getElementById('teamCourseSelect');
-                    if (teamCourseSelect) {
-                        const options = teamCourseSelect.options;
-                        for (let i = 0; i < options.length; i++) {
-                            if (options[i].value === courseCode) {
-                                teamCourseSelect.remove(i);
-                                break;
-                            }
-                        }
-                    }
-                });
-    
-    
-                // Reset form & join code
-                createCourseForm.reset();
-                joinCodeDisplay.classList.add('d-none');
-                currentJoinCode = '';
+                await refreshAllCourseDropdowns();
+
+            });
+
+        } catch (error) {
+            console.error('Error during course creation:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'An unexpected error occurred.',
+                icon: 'error'
             });
         }
+    });
+}
+
+        
         populateReportCourseDropdown()
+
+        // Show saved reviews when instructor clicks the Reviews tab
+        document.getElementById('reviews-tab').addEventListener('click', () => {
+            displaySavedReviews();
+        });
+
+        document.getElementById('schedule-tab').addEventListener('click', () => {
+            displayAssignedReviews();
+        });
+        
     
-        //***************************************************End of Courses Tab********************************************* */
-    }};
+     //***************************************************End of Courses Tab********************************************* */
+};
 
 //***********************************END OF FUNCTIONS************************************************************************ */
 
 
 // Handle "Generate Join Code" button click
+
+
 
 

@@ -1,7 +1,10 @@
+// const { stringify } = require("uuid");
+
 //global variables
 const regEmail = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/
 const regPassword = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/
 let users = []
+let userData = []
 //end global variables
 
 // Login button event listener. all validation and click events for Login page must be handled inside this event
@@ -32,14 +35,14 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
         });
 
         //Click event for clicking login button 
-        document.querySelector('#btnLogin').addEventListener('click', function() {
+        document.querySelector('#btnLogin').addEventListener('click', async function() {
 
             let strEmail = document.querySelector('#txtUsername').value.trim()  //grabs what the user entered into the email box
             let strPassword = document.querySelector('#txtPassword').value  //grabs what the user entered into the password box
             let role = document.querySelector('#LoginroleSelect').value  //grabs what role the user selected (student or instructor)
             let blnError = false
             let strMessage = '' 
-            let strIsPasswordCorrect = true
+            // let strIsPasswordCorrect = true
             
             //makes sure the email is actually an email
             if(!regEmail.test(strEmail)){  //testing strEmail against the regular expression pattern. if the test fails, false is returned, which is negated by the !, therefore, the code inside the if statement executes
@@ -54,9 +57,9 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
             }
 
             //make sure the password is actually user's password. Logic to be added later when able to store user passwords with user accounts
-            if(!strIsPasswordCorrect){
-                strMessage += "<p>Password Incorrect!</p>";
-            }
+            // if(!strIsPasswordCorrect){
+            //     strMessage += "<p>Password Incorrect!</p>";
+            // }
 
             //if student did not select a role, return an error message saying to do so
             if (role === "") {
@@ -73,55 +76,105 @@ document.querySelector('#btnLoginButton').addEventListener('click', (event) => {
                 });
                 return
             }
-            const users = JSON.parse(localStorage.getItem('users')) || []
-            //find matching user
-            const matchedUser = users.find(u => 
-                u.email === strEmail &&
-                u.password === strPassword &&
-                u.role === role
-            )
-            if (!matchedUser) {
-                Swal.fire({
-                    title: 'Login Failed',
-                    text: 'Invalid credentials or role selection.',
-                    icon: 'error'
-                });
-                return;
-            }
-
-            //login success
-            Swal.fire({
-                title: 'Login Successful!',
-                text: `Welcome, ${matchedUser.firstName}`,
-                icon: 'success'
-            }).then(() => {
-                // Hide login form
-                document.querySelector('#frmLogin').remove()
-
-                //redirect to appropriate role page
-                if (role === 'instructor') {
-                    fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
-                    .then(res => res.text())
-                    .then(html => {
-                        document.body.className = ''; // remove bg-dark and flex centering
-                        document.body.classList.add('bg-light'); // optional: add a light background
-
-                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-                        document.getElementById("instructorPage").style.display = "block"; //displays instructor page
-                        initalizeInstructorPage()
+            // If the user input follows all of the proper format, send it to the backend for validation.
+            try{
+                const response = await fetch('http://localhost:8000/validateUserLogin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: strEmail,
+                        password: strPassword,
+                        role: role
+                    }),
+                    credentials: 'include',
                 })
-                }else if(role === 'student') {
-                    fetch("components/student.html")
-                    .then(res => res.text())
-                    .then(html => {
-                        document.body.className = ''; // remove bg-dark and flex centering
-                        document.body.classList.add('bg-light'); // optional: add a light background
-                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
-                        document.getElementById("studentPage").style.display = "block"; //displays student page
 
-                })
+                userData = await response.json()
+                if (!response.ok) {
+                        // If backend response is not ok (error in login)
+                        Swal.fire({
+                            title: 'Login Failed',
+                            text: userData.error || 'An error occurred during login. Please try again.',
+                            icon: 'error'
+                        });
+                        return;
+                    }
+                
+                if(response.ok){
+                    localStorage.setItem('currentUser', JSON.stringify(userData.user));
+
+                    Swal.fire({
+                        title: 'Login Successful!',
+                        text: `Welcome, ${userData.user.FirstName}`,
+                        icon: 'success'
+                    }).then(() => {
+                        // Hide login form
+                        document.querySelector('#frmLogin').remove()
+        
+                        //redirect to appropriate role page
+                        if (role === 'instructor') {
+                            fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
+                            .then(res => res.text())
+                            .then(html => {
+                                document.body.className = ''; // remove bg-dark and flex centering
+                                document.body.classList.add('bg-light'); // optional: add a light background
+        
+                                document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                                document.getElementById("instructorPage").style.display = "block"; //displays instructor page
+                                initalizeInstructorPage()
+
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
+                        })
+                        }else if(role === 'student') {
+                            fetch("components/student.html")
+                            .then(res => res.text())
+                            .then(html => {
+                                document.body.className = ''; // remove bg-dark and flex centering
+                                document.body.classList.add('bg-light'); // optional: add a light background
+                                document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                                document.getElementById("studentPage").style.display = "block"; //displays student page
+
+                                initializeJoinCourseButton()
+                                fetchStudentCourses()
+                                initializeStudentPageEvents()
+
+
+                                //Have to add the logout button listener after the button is created in student.html
+                                document.getElementById('confirmLogout').addEventListener('click', async () => {
+                                    const response = await fetch('http://localhost:8000/logout', {
+                                        method: 'POST',
+                                        credentials: 'include'
+                                    });
+                                    if (response.ok) {
+                                        // Reloads the html
+                                        window.location.href = window.location.href;
+                                    }
+                            });
+
+        
+                        })
+                        }
+                    })
                 }
-            })
+            } catch (error){
+                console.error('Error during login:', error);
+                Swal.fire({
+                title: 'Login Failed',
+                text: 'An error occurred while processing your login request.',
+                icon: 'error'
+                })
+            }
         });
 
         // Back to landing screen button
@@ -261,41 +314,47 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
                     icon: "error"
                 });
             } else {
-                // 🔐 Step 1: Load existing users from localStorage (or use empty array)
-                let users = JSON.parse(localStorage.getItem('users')) || [];
-
-                    // 🔍 Step 2: Prevent duplicate registration by email
-                const existing = users.find(u => u.email === strEmail);
-                if (existing) {
+                // ✅ New code: Send user info to the server
+                fetch('http://localhost:8000/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        firstName: strFirstName,
+                        lastName: strLastName,
+                        email: strEmail,
+                        password: strPassword,
+                        role: role,
+                        contactType: (role === 'student') ? contactType : null,
+                        contactInfo: (role === 'student') ? contactInfo : null
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        Swal.fire({
+                            title: "Registered!",
+                            text: "You can now log in.",
+                            icon: "success"
+                        }).then(() => {
+                            document.querySelector('#btnSwapLogin').click();  // Go back to login screen
+                        });
+                    } else {
+                        Swal.fire({
+                            title: "Error",
+                            text: data.error || "An error occurred.",
+                            icon: "error"
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Registration error:', error);
                     Swal.fire({
-                        title: "Duplicate Account",
-                        text: "An account with this email already exists.",
+                        title: "Error",
+                        text: "Could not complete registration.",
                         icon: "error"
                     });
-                    return;
-                }
-
-    // 💾 Step 3: Add user to array
-                users.push({
-                    firstName: strFirstName,
-                    lastName: strLastName,
-                    email: strEmail,
-                    password: strPassword,
-                    role: role,
-                    contact: (role === 'student') ? { type: contactType, info: contactInfo } : null
-                });
-
-                // 💽 Step 4: Save updated array to localStorage
-                localStorage.setItem('users', JSON.stringify(users));
-
-                // 🎉 Step 5: Show confirmation
-                Swal.fire({
-                    title: "Registered!",
-                    text: "You can now log in.",
-                    icon: "success"
-                }).then(() => {
-        // Optional: go back to homepage
-                    document.querySelector('#btnSwapLogin').click();
                 });
             }
         });
@@ -318,3 +377,107 @@ document.querySelector('#btnRegisterButton').addEventListener('click', (event) =
     })
     .catch(error => console.error("Error fetching registration form:", error));
 });
+
+async function loginUser(username, password) {
+    const response = await fetch('http://localhost:8000/validateUserLogin', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username: username, // Email
+            password: password,
+            role: role
+        }),
+        credentials: 'include'
+    });
+    
+    userData = await response.json();
+    
+    if (response.ok) {
+        //Just simple debugging tips for now.
+        console.log("Login successful:", data.message);
+    } else {
+        console.error("Login failed:", data.error);
+    }
+
+    }
+
+
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch('http://localhost:8000/session/verify', {
+            method: 'GET',
+            credentials: 'include'  // Sends cookies.
+        })
+        
+        userData = await response.json()
+      
+        if(response.ok){
+            localStorage.setItem('currentUser', JSON.stringify(userData.user));
+    
+            Swal.fire({
+                title: 'Login Successful!',
+                text: `Welcome, ${userData.user.FirstName}`,
+                icon: 'success'
+            }).then(() => {
+                // Hide login form
+                document.querySelector('#divSelect').style.display = 'none';
+                // document.querySelector('#frmLogin').remove()
+    
+                //redirect to appropriate role page
+                if (userData.user.Role === 'instructor') {
+                    fetch("components/instructor.html") //grabs the instructor.html page if the user selected instructor
+                    .then(res => res.text())
+                    .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
+    
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("instructorPage").style.display = "block"; //displays instructor page
+                        initalizeInstructorPage()
+    
+                        document.getElementById('confirmLogout').addEventListener('click', async () => {
+                            const response = await fetch('http://localhost:8000/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            if (response.ok) {
+                                // Reloads the html
+                                window.location.href = window.location.href;
+                            }
+                    });
+                })
+                }else if(userData.user.Role === 'student') {
+                    fetch("components/student.html")
+                    .then(res => res.text())
+                    .then(html => {
+                        document.body.className = ''; // remove bg-dark and flex centering
+                        document.body.classList.add('bg-light'); // optional: add a light background
+                        document.querySelector('#divContent').insertAdjacentHTML("beforeend", html);
+                        document.getElementById("studentPage").style.display = "block"; //displays student page
+                        
+                        //Copies the one on login.
+                        initializeJoinCourseButton()
+                        fetchStudentCourses()
+                        initializeStudentPageEvents()
+    
+                        //Have to add the logout button listener here so that way the code will load it after the button exists.
+                        document.getElementById('confirmLogout').addEventListener('click', async () => {
+                            const response = await fetch('http://localhost:8000/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            if (response.ok) {
+                                //Reloads the html
+                                window.location.href = window.location.href;
+                            }
+                        });
+    
+                })
+                }
+            })
+        }
+    })
+
+   

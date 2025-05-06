@@ -1,43 +1,55 @@
-    <div id="studentPage" class="container mt-5">
-        <h2 class="text-center mb-4">Student Dashboard</h2>
-    
-        <!-- Navigation Tabs -->
-        <ul class="nav nav-tabs" id="studentTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">Teams</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule" type="button" role="tab">Schedule</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">Reports</button>
-            </li>
-        </ul>
-    
-        <!-- Tab Content -->
-        <div class="tab-content mt-4" id="studentTabContent">
-            
-            <!-- Courses Section -->
-            <!-- Courses Section -->
-            <div class="tab-pane fade show active" id="courses" role="tabpanel">
-            <h4>Manage Courses</h4>
+<!-- Main student dashboard container -->
+<div id="studentPage" class="container mt-5"> <h2 class="text-center mb-4">Student Dashboard</h2>
 
-    <!-- Generated Join Code Placeholder -->
+    ```
+        <!-- Navigation Tabs -->
+         <!-- Navigation tabs for student dashboard -->
+    <ul class="nav nav-tabs" id="studentTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab">Courses</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab">Teams</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Reviews</button>
+        </li>
+        
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="results-tab" data-bs-toggle="tab" data-bs-target="#results" type="button" role="tab">Review Results</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="logout-tab" data-bs-toggle="tab" data-bs-target="#logout" type="button" role="tab">Logout</button>
+        </li>  
+    </ul>
+    
+    <!-- Tab Content -->
+    <div class="tab-content mt-4" id="studentTabContent">
+    
+    <!-- Courses Section -->
+    
+    <!-- Courses tab content -->
+    <div class="tab-pane fade show active" id="courses" role="tabpanel">
+        <h4>Manage Courses</h4>
+        <div class="mb-4">
+            <h5>Join a Course</h5>
+            <!-- Join course input field and button -->
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" id="joinCodeInput" placeholder="Enter Join Code">
+                <button class="btn btn-primary" id="joinCourseBtn">Join</button>
+            </div>
+        </div>
+    
+    ```
+    <!-- Join Code Display -->
+     <!-- Displays current generated join code if applicable -->
     <div id="joinCodeDisplay" class="alert alert-info d-none" role="alert">
         Join Code: <strong id="joinCodeText"></strong>
     </div>
-
+    
     <!-- Existing Courses Table -->
     <h5 class="mt-4">Your Courses</h5>
+    <!-- Table showing student's enrolled courses -->
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
@@ -49,151 +61,80 @@
         </thead>
         <tbody id="courseTableBody">
             <!-- Course rows will be added dynamically here -->
-            <tr>
-                <td>Example Course</td>
-                <td>EX123</td>
-                <td>ABCDEF</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-danger">Drop</button>
-                </td>
-            </tr>
         </tbody>
     </table>
 </div>
-
     
-            <!-- Teams Section -->
-            <!-- Teams Section -->
+    <!-- Teams Section -->
+
+     <!-- Teams tab content -->
     <div class="tab-pane fade" id="teams" role="tabpanel">
-    <h4>Manage Teams</h4>
-
-    <!-- Select Course -->
-    <div class="mb-3">
-        <label for="teamCourseSelect" class="form-label">Select Course</label>
-        <select class="form-select" id="teamCourseSelect">
-            <option selected disabled>Select a course</option>
-            <option value="CS101">CS101 - Intro to Programming</option>
-            <option value="WD101">WD101 - Web Development</option>
-            <!-- More courses can be dynamically populated -->
-        </select>
+        <h4>Your Team(s)</h4>
+        <p class="text-muted">Below are the teams you are currently assigned to.</p>
+        <ul class="list-group" id="studentTeamList">
+            <!-- Team data will be inserted here dynamically -->
+        </ul>
     </div>
-
-    <!-- Teams List -->
-    <h5>Existing Teams</h5>
-    <ul class="list-group" id="teamList">
-        <!-- Dynamically added teams will go here -->
-        <li class="list-group-item">
-            <strong>Team Alpha</strong><br>
-            Members: Alice, Bob
-        </li>
-    </ul>
-</div>
-
     
-<!-- Reviews Section -->
-<div class="tab-pane fade" id="reviews" role="tabpanel">
-    <h4>See Reviews</h4>
-
-    <!-- Course Selection -->
-    <div class="mb-3">
-        <label for="reviewCourseSelect" class="form-label">Select Course</label>
-        <select class="form-select" id="reviewCourseSelect">
-        <option disabled selected>Select a course</option>
-        <!-- You'll populate this from the courses[] array -->
-        </select>
+    <!-- Reviews Section -->
+    
+    <!-- Reviews tab content -->
+    <div class="tab-pane fade" id="reviews" role="tabpanel">
+        <h4>See Reviews</h4>
+        <ul class="list-group" id="savedReviewsList">
+            <!-- Reviews will appear here with "View / Answer" buttons -->
+        </ul>
     </div>
+    <!--Logout Section-->
 
-    <!-- Select Public/Private -->
-    <div class="mb-3">
-        <label for="reviewVisibilitySelect" class="form-label">Select Visibility</label>
-        <input class="form-check" id="reviewVisibilitySelect">
-            <option value="public">Publicly Visible</option>
-            <option value="private">Privately Visible</option>
-            <!-- More courses can be dynamically populated -->
-    </input>
+    <!--Logout tab-->
+    <div class="tab-pane fade" id="logout" role="tabpanel">
+        <h4>Logout</h4>
+        <p>Are you sure you want to log out?</p>
+    <button class="btn btn-danger" id="confirmLogout">Yes, Log Me Out</button>
     </div>
-
-    <button class="btn btn-success" id="saveReviewBtn">Save Review</button> -->
-    <ul class="list-group" id="savedReviewsList">
-        <!-- Reviews will appear here -->
-    </ul>
-
 </div>
     
-            <!-- Schedule Section -->
-            <!-- Schedule Peer Reviews -->
-        <div class="tab-pane fade" id="schedule" role="tabpanel">
-            <h4 class="mb-4">Assign Peer Reviews</h4>
-  
-            <!-- Select Course -->
-            <div class="mb-3">
-            <label for="scheduleCourseSelect" class="form-label">Select Course</label>
-            <select class="form-select" id="scheduleCourseSelect">
-                <option disabled selected>Select a course</option>
-                <!-- Dynamically populated -->
-            </select>
-            </div>
-  
-            <!-- Select Review -->
-            <div class="mb-3">
-            <label for="scheduleReviewSelect" class="form-label">Select Review</label>
-            <select class="form-select" id="scheduleReviewSelect">
-                <option disabled selected>Select a review</option>
-                <!-- Dynamically populated -->
-            </select>
-            </div>
-  
-            <!-- Due Date -->
-            <div class="mb-3">
-            <label for="reviewDueDate" class="form-label">Due Date</label>
-            <input type="date" class="form-control" id="reviewDueDate">
-            </div>
-  
-            <!-- Assign Button -->
-            <button class="btn btn-success" id="assignReviewBtn">Assign Review</button>
-  
-            <!-- Success Alert -->
-            <div class="alert alert-success mt-3 d-none" id="assignmentSuccessAlert" role="alert">
-            Review assigned to all teams in the selected course!
-            </div>
-            <hr class="my-4">
-            <h5>Assigned Reviews</h5>
-            <ul class="list-group" id="assignedReviewsList">
-                <!-- Assigned review items will go here -->
-            </ul>
-        </div>
-  
+    <!-- ✅ Review Results Section -->
     
-            <!-- Review Results Section -->
-            <div class="tab-pane fade" id="results" role="tabpanel">
-                <h4>View Review Submissions</h4>
-                <button class="btn btn-info my-2">View Private Reviews</button>
-                <button class="btn btn-outline-info my-2">View Public Reviews</button>
-            </div>
-    
-            <!-- Reports Section -->
-            <div class="tab-pane fade" id="reports" role="tabpanel">
-                <h4>Generate Reports</h4>
-                <p>Sortable table of student averages (converted to 100pt scale)</p>
-                <!-- Add filters, sort options later -->
-            </div>
+    <!-- Review results tab content -->
+    <div class="fade" id="results" role="tabpanel">
+        <h4>View Review Submissions</h4>
+        <button class="btn btn-outline-info my-2" id="viewPublicReviewsBtn">View Public Reviews</button>
+        <div class="list-group" id="publicReviewResults">
+          <!-- Public reviews (cards) will load here -->
         </div>
+      </div>
+      
+    
+    
+    
+    
+      <!-- ✅ Bootstrap Modal for Review Form -->
+    
+      <!-- Modal for displaying full review questions and form -->
+    <div class="modal fade" id="fullReviewModal" tabindex="-1" aria-labelledby="fullReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+    
+    ```
+        <div class="modal-header">
+          <h5 class="modal-title" id="fullReviewModalLabel">Review Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+    
+        <div class="modal-body" id="fullReviewModalBody">
+          <!-- Dynamically injected form goes here -->
+        </div>
+    
+        <div class="modal-footer">
+          <!-- Optional: Add static close button here -->
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+    
+      </div>
     </div>
-
-    <!-- Full Review Model -->
-    <div class="model fade" id="fullReviewModel" tabindex="-1" aria-labelledby="fullReviewModelLabel" aria-hidden="true">
-        <div class="model-dialog model-lg">
-            <div class="model-content">
-                <div class="model-header">
-                    <h5 class="model-title" id="fullReviewModelLabel">Review Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="model" aria-label="Close"></button>
-                </div>
-            <div class="model-body" id="fullReviewModelBody">
-                <!-- Review content will be injected here -->
-                </div>
-            </div>
-        </div>
-    </div>
+    ```
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/student.js"></script>
+      </div>
+    
