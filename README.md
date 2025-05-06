@@ -12,11 +12,11 @@ Madison Grainger,
 Nathanael Newton
 
 Required Libraries
-cors
-express
-uuid
-sqlite3
-bcrypt
+cors,
+express,
+uuid,
+sqlite3,
+bcrypt,
 cookie-parser
 
 Instructions to run.
